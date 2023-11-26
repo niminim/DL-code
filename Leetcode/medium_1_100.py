@@ -73,3 +73,64 @@ print_linked_list(l2)
 
 # More solutions: https://github.com/kamyu104/LeetCode-Solutions/blob/master/Python/add-two-numbers.py
 ####
+
+
+###
+# 3. Longest Substring Without Repeating Characters  - https://leetcode.com/problems/longest-substring-without-repeating-characters/
+# both set and map solutions are included - https://www.youtube.com/watch?v=qtVh-XEpsJo
+# set solution - https://github.com/SamirPaulb/DSAlgo/blob/main/01_Problem-Solving-LeetCode/3-longest-substring-without-repeating-characters/3-longest-substring-without-repeating-characters.py
+# map solution - https://github.com/Garvit244/Leetcode/blob/master/1-100q/03.py (this one is better)
+#
+class Solution:
+    def lengthOfLongestSubstring(self, s):
+        track = set()
+        l = 0
+        res = 0
+
+        for r in range(len(s)):
+            print('* new r: ', r, '(s[r] - ', s[r],')')
+            while s[r] in track:
+                print('***** in while loop - while ', s[r], ' in track')
+                print('track: ', track)
+                print('remove ', s[l], ' from track')
+                track.remove(s[l])
+                print('current track: ', track)
+                l += 1
+                print(' new l: ', l)
+            print('*** finished while loop')
+            print('r: ', r, ', l: ', l)
+            res = max(res, r - l + 1)
+            print('res: ', res)
+            print('track - add: ', s[r])
+            track.add(s[r])
+            print('updated track: ', track)
+            print('***** finished r =', r, ' ******')
+
+        return res
+
+str0 = "abcabcd"
+str1 = "abcabcbb"
+str2 = "bbbbb"
+str3 = "pwwkew"
+
+str = Solution()
+res = str.lengthOfLongestSubstring(str3)
+print('max len: ', res)
+
+class Solution(object):
+    def lengthOfLongestSubstring(self, s):
+        mapSet = {}
+        start, result = 0, 0
+
+        for end in range(len(s)):
+        	if s[end] in mapSet:
+        		start = max(mapSet[s[end]], start)
+        	result = max(result, end-start+1)
+        	mapSet[s[end]] = end+1
+
+        return result
+
+sol = Solution()
+result = sol.lengthOfLongestSubstring(str0)
+
+####
