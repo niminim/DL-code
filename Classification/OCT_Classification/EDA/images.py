@@ -11,7 +11,6 @@ matplotlib.use('Qt5Agg')  # or 'Qt5Agg' depending on your system
 
 sys.path.append('/home/nim/venv/DL-code/Classification/OCT_Classification/EDA')
 
-
 def get_pil_img_metadata(img):
     W, H = img.size
     mode = img.mode
@@ -32,9 +31,7 @@ img_path = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/test/CNV/CNV-81630-3.jpeg'
 img = Image.open(img_path)
 plt.imshow(img) # show with matplotlib
 img.show() # Show with PIL
-
 W, H, mode, format = get_pil_img_metadata(img)
-
 
 ### opencv Image
 img_cv2 = cv2.imread(img_path)
@@ -48,11 +45,9 @@ H, W = img_data.shape
 print(f'size - H: {H}, W: {W}')
 print(f'dtype: {img_data.dtype}')
 
-
 pixels = list(img.getdata())
 width, height = img.size
 pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
-
 
 ##### Color images
 img_p1 = '/home/nim/Downloads/dog1.jpg'
