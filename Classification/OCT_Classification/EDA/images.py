@@ -28,13 +28,13 @@ def get_pil_img_metadata(img):
 
 ### PIL Image
 img_path = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/test/CNV/CNV-81630-3.jpeg'
-img = Image.open(img_path)
+img = Image.open(img_path) # type(img) = PIL Image
 plt.imshow(img) # show with matplotlib
 img.show() # Show with PIL
 W, H, mode, format = get_pil_img_metadata(img)
 
 ### opencv Image
-img_cv2 = cv2.imread(img_path)
+img_cv2 = cv2.imread(img_path) # type(img) = np.ndarray, img.dtype = uint8
 H, W, ch = img_cv2.shape
 print(f'opencv image: size - H: {H}, W: {W}, Ch: {ch}')
 plt.imshow(img_cv2)
