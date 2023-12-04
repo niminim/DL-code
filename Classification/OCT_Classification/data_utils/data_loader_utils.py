@@ -27,7 +27,13 @@ input_size = 192
 output_dir_imgs = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/dataset_images/"
 output_dir_grid = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/grid_images"
 
+###
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+print(f'device: {device}')
+#
+
 def get_dataset_metadata(dataset):
+    # get dataset's metadata
     print(f'train_dataset.root: {dataset.root}')
     print(f'len(train_dataset.imgs): {len(dataset.imgs)}')
     print(f'train_dataset.__len__(): {dataset.__len__()}')
@@ -41,7 +47,7 @@ def get_dataset_metadata(dataset):
     print(f'train_dataset.transforms: {dataset.transforms}')
 
 def denormalize_img_tensor_plot(img_tensor, plot=True):
-    # plot img_tensor as an image
+    # denormalize img_tensor and convert to a PIL image, and plot
 
     # Convert the normalized image tensor to a NumPy array
     img_denormalized = img_tensor.cpu().numpy().transpose((1, 2, 0))
@@ -62,7 +68,7 @@ def denormalize_img_tensor_plot(img_tensor, plot=True):
 
 # OR
 def denormalize_img_tensor_plot2(img_tensor, plot=True):
-    # Denormalize the image tensor
+    # denormalize img_tensor and convert to a PIL image, and plot
     denormalize = transforms.Compose([
         transforms.Normalize(mean=[-0.485/0.229, -0.456/0.224, -0.406/0.225], std=[1/0.229, 1/0.224, 1/0.225]),
     ])
@@ -78,6 +84,7 @@ def denormalize_img_tensor_plot2(img_tensor, plot=True):
     return img_denormalized, img_pil
 
 def save_dataset_images(dataset, output_dir):
+    # save all the images in the dataset
     os.makedirs(output_dir, exist_ok=True)
     img_num = 0
     for img, label in dataset:
@@ -104,20 +111,18 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=6,
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=6,
                                           shuffle=False, num_workers=2)
 
-######
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-print(f'device: {device}')
 
-##### dataset
+##### dataset - plot image
 img_i = 0
 img_path = train_dataset.imgs[img_i][0] # str
 label = train_dataset.__getitem__(img_i)[1] # int
 img_tensor = train_dataset.__getitem__(img_i)[0] #  type(img_tensor) - torch.Tensor, img_tensor.dtype - torch.float32
+
 img_denormalized, img_pil = denormalize_img_tensor_plot(img_tensor, plot=True)
 
-save_dataset_images(train_dataset, output_dir_imgs) # Save the whole train_dataset
+# save_dataset_images(train_dataset, output_dir_imgs) # Save the whole train_dataset
 
-##### dataloader
+##### dataloader - plot image
 for i, data in enumerate(train_loader, 0):
     inputs, labels = data
     inputs, labels = data[0].to(device), data[1].to(device)  # inputs.dtype and labels.dtype - torch.int64
@@ -128,8 +133,17 @@ denormalize_img_tensor_plot(inputs[0]) # plot the first image of the current bat
 
 
 
-# Grid of dataloader
+# Grid of dataloader (the grid looks somewhat "white")
 os.makedirs(output_dir_grid, exist_ok=True)
+
+def denormalize(tensor):
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    img = tensor.cpu().numpy().transpose((1, 2, 0))
+    img = std * img + mean
+    img = np.clip(img, 0, 1)
+    img = (img * 255).astype(np.uint8)  # Convert to uint8
+    return img
 
 # Iterate over the train_loader
 for batch_idx, (images, labels) in enumerate(train_loader):
@@ -137,7 +151,7 @@ for batch_idx, (images, labels) in enumerate(train_loader):
     grid = make_grid(images, nrow=3, padding=5, normalize=True)
 
     # Convert the normalized grid to a numpy array
-    grid_np, grid_pil = denormalize_img_tensor_plot(grid, plot=False)
+    grid_np = denormalize(grid)
 
     # Add true class names as text annotations
     for i, label in enumerate(labels):
@@ -147,10 +161,10 @@ for batch_idx, (images, labels) in enumerate(train_loader):
         plt.text(
             col * (input_size + 5) + 5,
             row * (input_size + 5) + 5,
-            f"Label: {true_class_name}",
+            f"lbl: {true_class_name}",
             color='white',
             backgroundcolor='black',
-            fontsize=8,
+            fontsize=10,
             verticalalignment='top',
             horizontalalignment='left'
         )
