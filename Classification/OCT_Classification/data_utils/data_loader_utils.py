@@ -47,7 +47,7 @@ def get_dataset_metadata(dataset):
     print(f'train_dataset.transforms: {dataset.transforms}')
 
 def denormalize_img_tensor_plot(img_tensor, plot=True):
-    # denormalize img_tensor and convert to a PIL image, and plot
+    # denormalize img_tensor and convert to a PIL image, and then plot the PIL image
 
     # Convert the normalized image tensor to a NumPy array
     img_denormalized = img_tensor.cpu().numpy().transpose((1, 2, 0))
@@ -68,7 +68,7 @@ def denormalize_img_tensor_plot(img_tensor, plot=True):
 
 # OR
 def denormalize_img_tensor_plot2(img_tensor, plot=True):
-    # denormalize img_tensor and convert to a PIL image, and plot
+    # denormalize img_tensor and convert to a PIL image, and then plot the PIL image
     denormalize = transforms.Compose([
         transforms.Normalize(mean=[-0.485/0.229, -0.456/0.224, -0.406/0.225], std=[1/0.229, 1/0.224, 1/0.225]),
     ])
@@ -83,6 +83,16 @@ def denormalize_img_tensor_plot2(img_tensor, plot=True):
 
     return img_denormalized, img_pil
 
+def denormalize(tensor):
+    # denormalize image tensor
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    img = tensor.cpu().numpy().transpose((1, 2, 0))
+    img = std * img + mean
+    img = np.clip(img, 0, 1)
+    img = (img * 255).astype(np.uint8)  # Convert to uint8
+    return img
+
 def save_dataset_images(dataset, output_dir):
     # save all the images in the dataset
     os.makedirs(output_dir, exist_ok=True)
@@ -94,6 +104,46 @@ def save_dataset_images(dataset, output_dir):
         img_num += 1
         print('img: ', img_num)
 
+
+def plot_dataloder_as_grid(dataloader, output_dir_grid):
+    # Plot images in the dataloader in a grid (the grid looks somewhat "white")
+    os.makedirs(output_dir_grid, exist_ok=True)
+
+    # Iterate over the train_loader
+    for batch_idx, (images, labels) in enumerate(dataloader):
+        # Create a grid of images
+        grid = make_grid(images, nrow=3, padding=5, normalize=True)
+
+        # Convert the normalized grid to a numpy array
+        grid_np = denormalize(grid)
+
+        # Add true class names as text annotations
+        for i, label in enumerate(labels):
+            row = i // 3  # Assuming nrow=3 in make_grid
+            col = i % 3
+            true_class_name = train_dataset.classes[label.item()]
+            plt.text(
+                col * (input_size + 5) + 5,
+                row * (input_size + 5) + 5,
+                f"lbl: {true_class_name}",
+                color='white',
+                backgroundcolor='black',
+                fontsize=10,
+                verticalalignment='top',
+                horizontalalignment='left'
+            )
+
+        # Display the grid with labels
+        plt.imshow(grid_np)
+        plt.axis('off')
+
+        # Save the grid as an image
+        image_path = os.path.join(output_dir_grid, f"grid_batch_{batch_idx}.png")
+        plt.savefig(image_path)
+        plt.close()
+
+    print(f"Grid images with true labels saved in {output_dir_grid}")
+####
 
 transform = transforms.Compose([
     transforms.Resize((input_size,input_size)), # (h,w)
@@ -131,55 +181,8 @@ for i, data in enumerate(train_loader, 0):
         break
 denormalize_img_tensor_plot(inputs[0]) # plot the first image of the current batch
 
+plot_dataloder_as_grid(train_loader, output_dir_grid)
 
-
-# Grid of dataloader (the grid looks somewhat "white")
-os.makedirs(output_dir_grid, exist_ok=True)
-
-def denormalize(tensor):
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    img = tensor.cpu().numpy().transpose((1, 2, 0))
-    img = std * img + mean
-    img = np.clip(img, 0, 1)
-    img = (img * 255).astype(np.uint8)  # Convert to uint8
-    return img
-
-# Iterate over the train_loader
-for batch_idx, (images, labels) in enumerate(train_loader):
-    # Create a grid of images
-    grid = make_grid(images, nrow=3, padding=5, normalize=True)
-
-    # Convert the normalized grid to a numpy array
-    grid_np = denormalize(grid)
-
-    # Add true class names as text annotations
-    for i, label in enumerate(labels):
-        row = i // 3  # Assuming nrow=3 in make_grid
-        col = i % 3
-        true_class_name = train_dataset.classes[label.item()]
-        plt.text(
-            col * (input_size + 5) + 5,
-            row * (input_size + 5) + 5,
-            f"lbl: {true_class_name}",
-            color='white',
-            backgroundcolor='black',
-            fontsize=10,
-            verticalalignment='top',
-            horizontalalignment='left'
-        )
-
-    # Display the grid with labels
-    plt.imshow(grid_np)
-    plt.axis('off')
-
-    # Save the grid as an image
-    image_path = os.path.join(output_dir_grid, f"grid_batch_{batch_idx}.png")
-    plt.savefig(image_path)
-    plt.close()
-
-print(f"Grid images with true labels saved in {output_dir_grid}")
-####
 
 
 

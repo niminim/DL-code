@@ -8,8 +8,8 @@ import json, csv
 
 # Paths
 source = "/home/nim/Downloads/OCT_and_X-ray/OCT2017/train"
-new_data_dir = "/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_new"
-csv_dir = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils"
+new_data_dir = "/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split"
+csv_dir = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits"
 
 # Constants
 DATA_FRACTION = 0.035
@@ -36,6 +36,7 @@ def add_new_row_to_df(full_path, df):
     return df
 
 def create_and_save_metadata_df(source, csv_dir):
+    # creates a dataframe if all the data
     assert os.path.exists(source)
     columns = ['name', 'phase', 'label', 'w', 'h']
     df = pd.DataFrame(columns=columns)
@@ -46,15 +47,15 @@ def create_and_save_metadata_df(source, csv_dir):
             df = add_new_row_to_df(full_path, df)
             if len(df) % 5000 == 0:
                 print(f'len(df): {len(df)}')
-    df.to_csv(os.path.join(csv_dir, 'train_all_files.csv'))
-    print('csv file save completed')
+    df.to_csv(os.path.join(csv_dir, 'train_all_files.csv'), index=False)
+    print('csv file of all data - save completed')
     return df
 
 
 def create_subsets_train_val(source, new_data_dir, csv_dir, data_fr=0.1, val_fr=0.15):
     # data_fr - fraction of data we want to use
     # val_fr - fraction of validation data (out of  the new data. the rest is for train --> train_fr = 1-val_fr)
-    # the function gets a data_path, and creates 2 dataframes - train amd val, which are subsets of the original data
+    # the function gets a source path of the data, and creates 2 dataframes - train amd val, which are subsets of the original data
 
     assert os.path.exists(source)
     total_files = count_all_files(source)
@@ -86,14 +87,14 @@ def create_subsets_train_val(source, new_data_dir, csv_dir, data_fr=0.1, val_fr=
             print(f'len(df_train): {len(df_train)}')
             print(f'len(df_val): {len(df_val)}')
     print('finished creating a new train and val sets')
-    df_val.to_csv(csv_dir + '/val_split.csv')
-    df_train.to_csv(csv_dir + '/train_split.csv')
+    df_val.to_csv(csv_dir + '/val_split.csv', index=False)
+    df_train.to_csv(csv_dir + '/train_split.csv', index=False)
     print('csv split files save completed')
     return df_train, df_val
 
 
-df = create_and_save_metadata_df(source, csv_dir)
-df = pd.read_csv(csv_dir + '/train_all_files.csv')
+# df = create_and_save_metadata_df(source, csv_dir)
+# df = pd.read_csv(csv_dir + '/train_all_files.csv')
 df_train, df_val = create_subsets_train_val(source, new_data_dir, csv_dir, data_fr=DATA_FRACTION, val_fr=VAL_FRACTION)
 
 
