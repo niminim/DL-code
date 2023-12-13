@@ -18,6 +18,9 @@ import cv2
 import matplotlib
 matplotlib.use('Qt5Agg')
 
+### The following code simply uses ImageDaraFolder to create the train and val datasets
+# Then it creates
+
 #####
 train_data_path = "/home/nim/Downloads/cats_and_dogs/train"
 val_data_path = "/home/nim/Downloads/cats_and_dogs/val"
@@ -38,6 +41,7 @@ def get_dataset_metadata(dataset):
     print(f'len(train_dataset.imgs): {len(dataset.imgs)}')
     print(f'train_dataset.__len__(): {dataset.__len__()}')
     print(f'train_dataset.classes: {dataset.classes}')
+    print(f'train_dataset.class_to_idx: {dataset.class_to_idx}')
     print(f'train_dataset.extensions: {dataset.extensions}')
     print(f'train_dataset.__getitem__(0)[0].shape: {dataset.__getitem__(0)[0].shape}')
     print(f'train_dataset.__getitem__(0)[1]: {dataset.__getitem__(0)[1]}')
@@ -179,34 +183,8 @@ for i, data in enumerate(train_loader, 0):
     print(f'inputs.shape: {inputs.shape}, labels: {labels.shape}')
     if i == 3:
         break
-denormalize_img_tensor_plot(inputs[0]) # plot the first image of the current batch
+denormalize_img_tensor_plot(inputs[0]) # plot the first image of the current batch (also normalize the image)
 
+# plot images from dataloader on a grid, and save grid images
 plot_dataloder_as_grid(train_loader, output_dir_grid)
-
-
-
-
-
-################################## Images
-### PIL Image
-img = Image.open(img_path) # type(img) = PIL Image
-W, H = img.size
-print(f'size - H: {H}, W: {W}')
-img.show() # Show with PIL
-plt.imshow(img) # show with matplotlib (viewer)
-
-### opencv Image
-img_cv2 = cv2.imread(img_path) # type(img) = np.ndarray, img.dtype = uint8
-H, W, Ch = img_cv2.shape
-print(f'opencv image: size - H: {H}, W: {W}, Ch: {Ch}')
-plt.imshow(img_cv2)
-plt.show()
-
-# Numpy data
-img_data = np.asarray(img)
-H, W, Ch = img_data.shape
-print(f'np_data image: size - H: {H}, W: {W}, Ch: {Ch}')
-print(f'dtype: {img_data.dtype}')
-plt.imshow(img_data)
-plt.show()
 

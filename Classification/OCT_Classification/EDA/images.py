@@ -26,25 +26,35 @@ def get_pil_img_metadata(img):
     # print("Image Size:", image_info.get("size"))
     return W, H, mode, format
 
-### PIL Image
+
+################################## Images
 img_path = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/test/CNV/CNV-81630-3.jpeg'
+### PIL Image
 img = Image.open(img_path) # type(img) = PIL Image
-plt.imshow(img) # show with matplotlib
-img.show() # Show with PIL
 W, H, mode, format = get_pil_img_metadata(img)
+print(f'size - H: {H}, W: {W}')
+img.show() # Show with PIL
+plt.imshow(img) # show with matplotlib (viewer)
+
 
 ### opencv Image
 img_cv2 = cv2.imread(img_path) # type(img) = np.ndarray, img.dtype = uint8
-H, W, ch = img_cv2.shape
-print(f'opencv image: size - H: {H}, W: {W}, Ch: {ch}')
+H, W, Ch = img_cv2.shape
+print(f'opencv image: size - H: {H}, W: {W}, Ch: {Ch}')
 plt.imshow(img_cv2)
+plt.show()
+
 
 # Numpy data
 img_data = np.asarray(img)
-H, W = img_data.shape
-print(f'size - H: {H}, W: {W}')
+H, W, Ch = img_data.shape
+print(f'np_data image: size - H: {H}, W: {W}, Ch: {Ch}')
 print(f'dtype: {img_data.dtype}')
+plt.imshow(img_data)
+plt.show()
 
+
+# Count pixels
 pixels = list(img.getdata())
 width, height = img.size
 pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
@@ -59,3 +69,4 @@ im.show()
 plt.imshow(im)
 
 _,_,_,_ = get_pil_img_metadata(im)
+
