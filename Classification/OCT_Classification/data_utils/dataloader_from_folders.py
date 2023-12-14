@@ -23,6 +23,9 @@ matplotlib.use('Qt5Agg')
 train_data_path = "/home/nim/Downloads/cats_and_dogs/train"
 val_data_path = "/home/nim/Downloads/cats_and_dogs/val"
 
+train_data_path = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_035/train'
+val_data_path = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_035/val'
+
 ###
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(f'device: {device}')

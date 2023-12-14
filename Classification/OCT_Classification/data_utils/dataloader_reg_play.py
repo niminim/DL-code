@@ -37,6 +37,14 @@ transform = transforms.Compose([
 
 dataset = ImageFolder(train_data_path, transform=transform)
 
+
+
+
+
+
+
+
+
 val_dataset = ImageFolder(val_data_path, transform=transform)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=6,
