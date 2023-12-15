@@ -129,6 +129,7 @@ plot_class_dir_loaders(train_dist, val_dist)
 
 #########  WeightedRandomSampler
 # using this is relevant only for the train-loader. should be performed on train-dataset only
+# train-dataset should be created in advance (without indexing) if we want to use WeightedRandomSampler
 
 target_list = torch.tensor(dataset.targets)
 

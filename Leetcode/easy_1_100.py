@@ -23,7 +23,7 @@ print(result)
 #####
 
 ###
-# 9 - Palindrome Number
+# 9 - Palindrome Number - https://leetcode.com/problems/palindrome-number/
 # Both are ChatGPT Solutions
 def isPalindrome(x):
     # Special case: negative numbers are not palindromes
@@ -61,7 +61,84 @@ print(result)
 
 ####
 
-## 21 - Merge Two Sorted Lists
+# 13 - Roam to Integer - https://leetcode.com/problems/roman-to-integer/
+# ChatGP solution
+def romanToInt(s: str) -> int:
+    roman_dict = {
+        'I': 1,
+        'V': 5,
+        'X': 10,
+        'L': 50,
+        'C': 100,
+        'D': 500,
+        'M': 1000
+    }
+
+    total = 0
+    prev_value = 0
+
+    for char in s:
+        current_value = roman_dict[char]
+        total += current_value
+
+        if current_value > prev_value:
+            # Subtract the twice of the previous value because
+            # it was added in the previous step
+            total -= 2 * prev_value
+
+        prev_value = current_value
+
+    return total
+
+# Test the function with examples
+print(romanToInt("III"))      # Output: 3
+print(romanToInt("IV"))       # Output: 4
+print(romanToInt("IX"))       # Output: 9
+print(romanToInt("LVIII"))    # Output: 58
+print(romanToInt("MCMXCIV"))  # Output: 1994
+#
+
+# https://github.com/SamirPaulb/DSAlgo/blob/main/01_Problem-Solving-LeetCode/13-roman-to-integer/13-roman-to-integer.py
+class Solution:
+    def romanToInt(self, s: str) -> int:
+        n = len(s)
+        res = 0
+        dic = {"I": 1,
+               "IV": 4,
+               "V": 5,
+               "IX": 9,
+               "X": 10,
+               "XL": 40,
+               "L": 50,
+               "XC": 90,
+               "C": 100,
+               "CD": 400,
+               "D": 500,
+               "CM": 900,
+               "M": 1000,
+               }
+
+        i = 0
+        while i < n:
+            if i < n - 1 and s[i:i + 2] in dic:
+                res += dic[s[i:i + 2]]
+                i += 2
+            else:
+                res += dic[s[i:i + 1]]
+                i += 1
+
+        return res
+
+sol = Solution()
+print(sol.romanToInt("III"))      # Output: 3
+print(sol.romanToInt("IV"))       # Output: 4
+print(sol.romanToInt("IX"))       # Output: 9
+print(sol.romanToInt("LVIII"))    # Output: 58
+print(sol.romanToInt("MCMXCIV"))  # Output: 1994
+
+
+
+## 21 - Merge Two Sorted Lists - https://leetcode.com/problems/merge-two-sorted-lists/
 # ChatGPT
 class ListNode:
     def __init__(self, val=0, next=None):
