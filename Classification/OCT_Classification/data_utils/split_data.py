@@ -12,15 +12,12 @@ new_data_dir = "/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split"
 csv_dir = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits"
 
 # Constants
-# DATA_FRACTION = 0.035
-# VAL_FRACTION = 0.1
-
-DATA_FRACTION = 0.01
+DATA_FRACTION = 0.035
 VAL_FRACTION = 0.1
 
-def get_phase_label_name(full_path):
-    phase, label, name = full_path.split('/')[-3:]
-    return phase, label, name
+# DATA_FRACTION = 0.01
+# VAL_FRACTION = 0.1
+
 
 def count_all_files(directory):
     # Use glob to get a list of all files, including those in subdirectories
@@ -29,8 +26,8 @@ def count_all_files(directory):
     print(f'found {total_files} in source directory')
     return total_files
 
-def add_new_row_to_df(full_path, df):
-    phase, label, name = get_phase_label_name(full_path)
+def add_new_row_to_df(full_path, df, phase):
+    label, name = full_path.split('/')[-2:]
     img = Image.open(full_path)
     w, h = img.size
     new_row = {'name': name, 'phase': phase, 'label': label, 'w': w, 'h': h}
@@ -47,7 +44,7 @@ def create_and_save_metadata_df(source, csv_dir):
     for root, dirs, files in os.walk(source, topdown=False):
         for name in files:
             full_path = os.path.join(root, name)
-            df = add_new_row_to_df(full_path, df)
+            df = add_new_row_to_df(full_path, df, phase='train_all')
             if len(df) % 5000 == 0:
                 print(f'len(df): {len(df)}')
     df.to_csv(os.path.join(csv_dir, 'train_all_files.csv'), index=False)
@@ -71,16 +68,16 @@ def create_subsets_train_val(source, new_data_dir, csv_dir, data_fr=0.1, val_fr=
     for root, dirs, files in os.walk(source, topdown=False):
         for name in files:
             full_path = os.path.join(root, name)
+            label = full_path.split('/')[-2]
             rand = np.random.uniform(0, 1)
             if rand < data_fr:
-                phase, label, name = get_phase_label_name(full_path)
                 rand2 = np.random.uniform(0, 1)
                 if rand2 <= val_fr:
                     new_phase = 'val'
-                    df_val = add_new_row_to_df(full_path, df_val)
+                    df_val = add_new_row_to_df(full_path, df_val, new_phase)
                 else:
                     new_phase = 'train'
-                    df_train = add_new_row_to_df(full_path, df_train)
+                    df_train = add_new_row_to_df(full_path, df_train, new_phase)
                 new_dir = os.path.join(new_data_dir + '_' + data_subset_name, new_phase, label)
                 os.makedirs(new_dir, exist_ok=True)
                 new_dest = os.path.join(new_dir, name)

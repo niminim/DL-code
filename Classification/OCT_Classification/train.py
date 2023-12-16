@@ -21,7 +21,7 @@ model_name = 'efficientnet' # mobilenet, efficientnet
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(f'device: {device}')
 
-model = get_model(model_name, in_channels=3, num_classes=4, device=device)
+model = get_model(model_name, in_channels=1, num_classes=4, device=device) # in_channels = 1 from CSV, 3 - from Folder
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -34,8 +34,8 @@ for epoch in range(50):  # loop over the dataset multiple times
     total = 0
     print(f'lr: {scheduler.get_lr()[0]}')
     lr = scheduler.optimizer.param_groups[0]['lr']
-    for i, (img, label) in enumerate(train_loader, 0):
-    # for i, (img, label, img_data) in enumerate(train_loader, 0):
+    # for i, (img, label) in enumerate(train_loader, 0):
+    for i, (img, label, img_data) in enumerate(train_loader, 0):
         # from sklearn.preprocessing import LabelEncoder
         # label_encoder = LabelEncoder()
         # label_encoder.fit(label)
@@ -43,8 +43,6 @@ for epoch in range(50):  # loop over the dataset multiple times
         # inputs, labels = img.to(device), numerical_labels.to(device) # inputs.dtype and labels.dtype - torch.int64
 
         inputs, labels = img.to(device), label.to(device) # inputs.dtype and labels.dtype - torch.int64
-        # print(f'inputs.shape: {inputs.shape}, inputs.is_cuda: {inputs.is_cuda}')
-        # print(f'labels.shape: {labels.shape}, labels.is_cuda: {labels.is_cuda}')
 
     # zero the parameter gradients
         optimizer.zero_grad()
@@ -73,16 +71,25 @@ correct = 0
 total = 0
 # since we're not training, we don't need to calculate the gradients for our outputs
 all_preds = torch.empty(0,).to(device)
-all_probs = torch.empty(0, len(val_dataset.classes)).to(device)
+# all_probs = torch.empty(0, len(val_dataset.classes)).to(device) # when creating dataset from CSV there's no .classes
+all_probs = torch.empty(0, 4).to(device) # when creating dataset from CSV there's no .classes
 
 model.eval()
 with torch.no_grad():
     for data in val_loader:
-        images, labels = data
-        inputs, labels = data[0].to(device), data[1].to(device) # inputs.dtype - torch.float32, labels.dtype - torch.int64
+        inputs, labels = data[0].to(device), data[1].to(device)  # inputs.dtype - torch.float32, labels.dtype - torch.int64
+
+    # for i, (img, label, img_data) in enumerate(val_loader, 0):
+    #     from sklearn.preprocessing import LabelEncoder
+    #     label_encoder = LabelEncoder()
+    #     label_encoder.fit(label)
+    #     numerical_labels = torch.Tensor(label_encoder.transform(label)).long()
+    #     inputs, labels = img.to(device), numerical_labels.to(device)  # inputs.dtype and labels.dtype - torch.int64
+
         # calculate outputs by running images through the network
         outputs = model(inputs)
-        val_probs = torch.nn.functional.softmax(outputs, dim=1)[:,:len(val_dataset.classes)]
+        # val_probs = torch.nn.functional.softmax(outputs, dim=1)[:,:len(val_dataset.classes)]
+        val_probs = torch.nn.functional.softmax(outputs, dim=1)[:,:4]
 
         # the class with the highest energy is what we choose as prediction
         val_scores, val_predicted = torch.max(outputs.data, 1)
@@ -98,3 +105,13 @@ print('all_preds: ',all_preds)
 true_labels = torch.Tensor(val_dataset.targets).reshape(len(val_dataset),1)
 final = torch.cat((all_probs, true_labels.to(device)), dim=1)
 final = torch.round(final, decimals=3)
+
+
+from sklearn.metrics import confusion_matrix, classification_report
+cm = confusion_matrix(true_labels.cpu(), all_preds.cpu())
+cr = classification_report(true_labels.cpu(), all_preds.cpu(), target_names=list(val_dataset.class_to_idx.keys()))
+
+print('cm')
+print(cm)
+print('cr')
+print(cr)

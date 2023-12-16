@@ -69,6 +69,9 @@ def save_dataset_imgs(dataset, save_dir, num_imgs):
         plt.title(f"Phase: {img_data['phase']}, Label: {label}")
         plt.savefig(os.path.join(save_dir, img_data['img_name']))
 
+split = '0_01'
+# split = '0_035'
+
 base_data_folder = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_01' # data path
 train_csv_file_path = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits/train_split_0_01.csv' # csv of same data
 val_csv_file_path = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits/val_split_0_01.csv' # csv of same data
