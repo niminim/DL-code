@@ -39,12 +39,12 @@ class CustomDatasetFromCSV(Dataset):
 
         return {'img': img, 'img_name': img_name, 'filepath': filepath, 'phase': phase, 'label': label, 'width': width, 'height': height}
 
-def plot_sample_by_index(dataset, idx):
+def plot_sample_by_index(dataset, index):
     # The function gets a dataset and an index
     # The function prints the metadata of image of index "idx" from the input dataset, and plots the image
-    assert idx < len(dataset)
+    assert index < len(dataset)
 
-    sample = dataset.__getitem__(idx)
+    sample = dataset.__getitem__(index)
     # Print the details of the sample
     print(
         f"Image shape: {sample['img'].shape}, Image name: {sample['img_name']}, Phase: {sample['phase']}, Label: {sample['label']}, "
@@ -68,9 +68,9 @@ def save_dataset_imgs(dataset, save_dir, num_imgs):
         plt.title(f"Phase: {sample['phase']}, Label: {sample['label']}")
         plt.savefig(os.path.join(save_dir, sample['img_name']))
 
-base_data_folder = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_035' # data path
-train_csv_file_path = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits/train_split.csv' # csv of same data
-val_csv_file_path = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits/val_split.csv' # csv of same data
+base_data_folder = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_01' # data path
+train_csv_file_path = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits/train_split_0_01.csv' # csv of same data
+val_csv_file_path = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits/val_split_0_01.csv' # csv of same data
 save_imgs_dir = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/custom_dataset_images' # dir  to save samples from the dataset
 
 

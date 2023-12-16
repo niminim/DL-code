@@ -12,7 +12,10 @@ new_data_dir = "/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split"
 csv_dir = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits"
 
 # Constants
-DATA_FRACTION = 0.035
+# DATA_FRACTION = 0.035
+# VAL_FRACTION = 0.1
+
+DATA_FRACTION = 0.01
 VAL_FRACTION = 0.1
 
 def get_phase_label_name(full_path):
@@ -87,8 +90,8 @@ def create_subsets_train_val(source, new_data_dir, csv_dir, data_fr=0.1, val_fr=
             print(f'len(df_train): {len(df_train)}')
             print(f'len(df_val): {len(df_val)}')
     print('finished creating a new train and val sets')
-    df_val.to_csv(csv_dir + '/val_split.csv', index=False)
-    df_train.to_csv(csv_dir + '/train_split.csv', index=False)
+    df_val.to_csv(csv_dir + '/val_split_' + data_subset_name + '.csv', index=False)
+    df_train.to_csv(csv_dir + '/train_split_' + data_subset_name + '.csv', index=False)
     print('csv split files save completed')
     return df_train, df_val
 

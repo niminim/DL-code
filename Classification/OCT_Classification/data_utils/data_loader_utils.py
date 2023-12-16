@@ -1,7 +1,5 @@
 import os
 import torch
-from torch.utils.data import random_split
-from torch.utils.data.sampler import SubsetRandomSampler
 
 from torchvision import transforms
 from torchvision.utils import make_grid, save_image
@@ -9,7 +7,6 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision.datasets import ImageFolder
 
 import numpy as np
-from IPython.display import Image
 import matplotlib.pyplot as plt
 
 from PIL import Image

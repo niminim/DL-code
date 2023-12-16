@@ -1,3 +1,4 @@
+import os, sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,58 +7,42 @@ from torch.utils.data.sampler import SubsetRandomSampler
 
 from torchvision import transforms, models
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
-from torchvision.datasets import ImageFolder
-
-from IPython.display import Image
 
 import numpy as np
-
-
-#####
-train_data_path = "/home/nim/Downloads/cats_and_dogs/train"
-val_data_path = "/home/nim/Downloads/cats_and_dogs/val"
 
 input_size = 192
 model_name = 'efficientnet' # mobilenet, efficientnet
 
+sys.path.append('/home/nim/venv/DL-code/Classification/OCT_Classification')
 
-def get_model(model_name):
-    if model_name == 'efficientnet':
-        model = models.efficientnet_b1(weights='IMAGENET1K_V1', progress=True)
-        model.classifier[1] = nn.Linear(1280,2)
-    elif model_name == 'mobilenet':
-        model = models.mobilenet_v3_small(weights='IMAGENET1K_V1')
-        model.classifier[1] = nn.Linear(1024,2)
-
-    return model.to(device)
+print(os.getcwd()) # get current working directory
 
 
-transform = transforms.Compose([
-    transforms.Resize((input_size,input_size)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+os.chdir('/home/nim/venv/DL-code/Classification')
+print(os.getcwd())
 
-train_dataset = ImageFolder(train_data_path, transform=transform)
-val_dataset = ImageFolder(val_data_path, transform=transform)
-get_dataset_metadata(train_dataset)
+from OCT_Classification.Models.build_model import get_model
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=6,
+from Models.build_model import get_model
+from DL_code.Classification.OCT_Classification.Models.build_model import get_model
+
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=24,
                                           shuffle=True, num_workers=2)
 
-val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=6,
+val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=24,
                                           shuffle=False, num_workers=2)
 
 ######
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(f'device: {device}')
-model = get_model(model_name)
+
+model = get_model(model_name, num_classes, device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.2)
 
-for epoch in range(100):  # loop over the dataset multiple times
+for epoch in range(1):  # loop over the dataset multiple times
     print(f'epoch: {epoch}')
     running_loss = 0.0
     correct = 0
