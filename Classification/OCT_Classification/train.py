@@ -1,62 +1,55 @@
 import os, sys
+import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import random_split
-from torch.utils.data.sampler import SubsetRandomSampler
-
-from torchvision import transforms, models
 import torch.optim as optim
 
-import numpy as np
+from Classification.OCT_Classification.models.build_model import get_model
+
+# print(os.getcwd()) # get current working directory
+# sys.path.append('/home/nim/venv/DL-code/Classification/OCT_Classification')
+# os.chdir('/home/nim/venv/DL-code/Classification')
 
 input_size = 192
 model_name = 'efficientnet' # mobilenet, efficientnet
 
-sys.path.append('/home/nim/venv/DL-code/Classification/OCT_Classification')
-
-print(os.getcwd()) # get current working directory
-
-
-os.chdir('/home/nim/venv/DL-code/Classification')
-print(os.getcwd())
-
-from OCT_Classification.Models.build_model import get_model
-
-from Models.build_model import get_model
-from DL_code.Classification.OCT_Classification.Models.build_model import get_model
-
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=24,
-                                          shuffle=True, num_workers=2)
-
-val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=24,
-                                          shuffle=False, num_workers=2)
 
 ######
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(f'device: {device}')
 
-model = get_model(model_name, num_classes, device)
+model = get_model(model_name, in_channels=3, num_classes=4, device=device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.2)
+scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.2)
 
-for epoch in range(1):  # loop over the dataset multiple times
+for epoch in range(50):  # loop over the dataset multiple times
     print(f'epoch: {epoch}')
     running_loss = 0.0
     correct = 0
     total = 0
     print(f'lr: {scheduler.get_lr()[0]}')
     lr = scheduler.optimizer.param_groups[0]['lr']
-    for i, data in enumerate(train_loader, 0):
-        inputs, labels = data
-        inputs, labels = data[0].to(device), data[1].to(device) # inputs.dtype and labels.dtype - torch.int64
+    for i, (img, label) in enumerate(train_loader, 0):
+    # for i, (img, label, img_data) in enumerate(train_loader, 0):
+        # from sklearn.preprocessing import LabelEncoder
+        # label_encoder = LabelEncoder()
+        # label_encoder.fit(label)
+        # numerical_labels = torch.Tensor(label_encoder.transform(label)).long()
+        # inputs, labels = img.to(device), numerical_labels.to(device) # inputs.dtype and labels.dtype - torch.int64
 
-        # zero the parameter gradients
+        inputs, labels = img.to(device), label.to(device) # inputs.dtype and labels.dtype - torch.int64
+        # print(f'inputs.shape: {inputs.shape}, inputs.is_cuda: {inputs.is_cuda}')
+        # print(f'labels.shape: {labels.shape}, labels.is_cuda: {labels.is_cuda}')
+
+    # zero the parameter gradients
         optimizer.zero_grad()
 
-        # forward + backward + optimize
+    # forward + backward + optimize
         outputs = model(inputs) # inputs.dtype and inputs.dtype - torch.float32
         loss = criterion(outputs, labels)
         loss.backward()
@@ -69,11 +62,10 @@ for epoch in range(1):  # loop over the dataset multiple times
         correct += (predicted == labels).sum().item()
 
     print(f'running loss: {running_loss:.2f}')
-    print(f'train acc: {(correct/total):.3f}%')
+    print(f'train acc: {100*(correct/total):.2f}%')
     scheduler.step()
     running_loss = 0.0
 print('Finished Training')
-
 
 
 

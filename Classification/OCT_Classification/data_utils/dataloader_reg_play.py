@@ -181,7 +181,7 @@ weighted_sampler = WeightedRandomSampler(
     replacement=True
 )
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10,sampler=, num_workers=0)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10,sampler=weighted_sampler, num_workers=0)
 
 for idx, (data,label) in enumerate(train_loader):
     print(f"label: {label}")
