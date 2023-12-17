@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Qt5Agg')
 
+from Classification.OCT_Classification.data_utils.dataset_transforms import get_transform
 from Classification.OCT_Classification.data_utils.data_loader_utils import create_dataloader, get_class_dist_from_dataloader, get_class_dist_from_dataset
 # it runs the whole module if there's no if == main
 
@@ -81,17 +82,14 @@ val_csv_file_path = '/home/nim/venv/DL-code/Classification/OCT_Classification/da
 save_imgs_dir = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/custom_dataset_images' # dir  to save samples from the dataset
 
 
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),  # Adjust as needed
-    # transforms.RandomRotation((20)),  # Adjust as needed
-    transforms.ToTensor(),
-])
+transform = get_transform(input_size=224)
 
 # Create an instance of your custom dataset
 train_dataset = CustomDatasetFromCSV(csv_file=train_csv_file_path, base_data_folder=base_data_folder, transform=transform)
 val_dataset = CustomDatasetFromCSV(csv_file=val_csv_file_path, base_data_folder=base_data_folder, transform=transform)
 
 train_loader, val_loader = create_dataloader(train_dataset, val_dataset, bs_train=24, bs_val=24)
+class_counts = get_class_dist_from_dataloader(train_loader, num_classes=4)
 
 # Print the instance metadata and plot the image
 plot_sample_by_index(train_dataset, index=10)

@@ -5,28 +5,23 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
+from Classification.OCT_Classification.data_utils.dataset_transforms import get_transform
 from Classification.OCT_Classification.data_utils.data_loader_utils import create_dataloader, get_class_dist_from_dataloader, get_class_dist_from_dataset
 # it runs the whole module if there's no if == main
+
 
 ### The following code simply uses ImageDaraFolder to create the train and val datasets
 # Then it creates dataloaders
 
 base_split_folder = '/home/nim/Downloads/cats_and_dogs'
-base_split_folder = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_01'
+base_split_folder = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_035'
 train_data_path = os.path.join(base_split_folder, 'train')
 val_data_path = os.path.join(base_split_folder, 'val')
 
-
-input_size = 224
-transform = transforms.Compose([
-    transforms.Resize((input_size,input_size)), # (h,w)
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
-
+transform = get_transform(input_size=224)
 train_dataset = ImageFolder(train_data_path, transform=transform)
 val_dataset = ImageFolder(val_data_path, transform=transform)
-train_loader, val_loader = create_dataloader(train_dataset, val_dataset, bs_train=24, bs_val=24)
+train_loader, val_loader = create_dataloader(train_dataset, val_dataset, bs_train=48, bs_val=48)
 
 ######
 

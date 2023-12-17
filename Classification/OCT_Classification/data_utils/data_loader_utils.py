@@ -64,45 +64,29 @@ def denormalize_img_tensor_plot(img_tensor, plot=True):
 
     # Convert the denormalized array to a PIL Image
     img_denormalized = (img_denormalized * 255).astype(np.uint8)  # Convert to uint8
+
+    # Or do this
+    # denormalize = transforms.Compose([
+    #     transforms.Normalize(mean=[-0.485/0.229, -0.456/0.224, -0.406/0.225], std=[1/0.229, 1/0.224, 1/0.225]),
+    # ])
+    # img_denormalized = denormalize(img_tensor).clamp(0, 1)
+    #
+    # # Convert the denormalized tensor to a PIL Image
+    # to_pil = transforms.ToPILImage()
+    # img_pil = to_pil(img_denormalized)
+
     img_pil = Image.fromarray(img_denormalized)
 
     if plot:
         plt.imshow(img_pil)
     return img_denormalized, img_pil
 
-# OR
-def denormalize_img_tensor_plot2(img_tensor, plot=True):
-    # denormalize img_tensor and convert to a PIL image, and then plot the PIL image
-    denormalize = transforms.Compose([
-        transforms.Normalize(mean=[-0.485/0.229, -0.456/0.224, -0.406/0.225], std=[1/0.229, 1/0.224, 1/0.225]),
-    ])
-    img_denormalized = denormalize(img_tensor).clamp(0, 1)
-
-    # Convert the denormalized tensor to a PIL Image
-    to_pil = transforms.ToPILImage()
-    img_pil = to_pil(img_denormalized)
-
-    if plot:
-        plt.imshow(img_pil)
-
-    return img_denormalized, img_pil
-
-def denormalize(tensor):
-    # denormalize image tensor
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    img = tensor.cpu().numpy().transpose((1, 2, 0))
-    img = std * img + mean
-    img = np.clip(img, 0, 1)
-    img = (img * 255).astype(np.uint8)  # Convert to uint8
-    return img
-
 def save_dataset_images(dataset, output_dir):
     # save all the images in the dataset
     os.makedirs(output_dir, exist_ok=True)
     img_num = 0
     for img, label in dataset:
-        img_denormalized, img_pil = denormalize_img_tensor_plot2(img, plot=True)
+        img_denormalized, img_pil = denormalize_img_tensor_plot(img, plot=True)
         plt.imshow(img_pil)
         plt.savefig(output_dir + str(img_num) + '.png')
         img_num += 1
@@ -115,6 +99,16 @@ def create_dataloader(train_dataset, val_dataset, bs_train, bs_val):
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=bs_val,
                                              shuffle=False, num_workers=2)
     return train_loader, val_loader
+
+def denormalize(tensor):
+    # denormalize image tensor
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    img = tensor.cpu().numpy().transpose((1, 2, 0))
+    img = std * img + mean
+    img = np.clip(img, 0, 1)
+    img = (img * 255).astype(np.uint8)  # Convert to uint8
+    return img
 
 def get_class_dist_from_dataloader(data_loader, num_classes):
     # the function calculates the class distribution of a dataloader

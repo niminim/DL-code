@@ -11,6 +11,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from Classification.OCT_Classification.data_utils.dataset_transforms import get_transform
 from Classification.OCT_Classification.data_utils.data_loader_utils import create_dataloader, get_class_dist_from_dataloader, get_class_dist_from_dataset
 # it runs the whole module if there's no if == main
 
@@ -31,13 +32,7 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(f'device: {device}')
 
 
-transform = transforms.Compose([
-    transforms.Resize((224,224)), # (h,w)
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
-
-
+transform = get_transform(input_size=224)
 dataset = ImageFolder(data_path, transform=transform)
 data_loader = torch.utils.data.DataLoader(dataset, batch_size=1,
                                            shuffle=True, num_workers=2)

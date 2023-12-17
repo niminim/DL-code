@@ -18,6 +18,8 @@ VAL_FRACTION = 0.1
 # DATA_FRACTION = 0.01
 # VAL_FRACTION = 0.1
 
+DATA_FRACTION = 0.08
+VAL_FRACTION = 0.1
 
 def count_all_files(directory):
     # Use glob to get a list of all files, including those in subdirectories
