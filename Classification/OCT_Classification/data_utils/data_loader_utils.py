@@ -16,21 +16,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 
 ### The following code simply uses ImageDaraFolder to create the train and val datasets
-# Then it creates
-
-#####
-train_data_path = "/home/nim/Downloads/cats_and_dogs/train"
-val_data_path = "/home/nim/Downloads/cats_and_dogs/val"
-
-input_size = 192
-
-output_dir_imgs = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/dataset_images/"
-output_dir_grid = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/grid_images"
-
-###
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-print(f'device: {device}')
-#
+# Then it creates their dataloaders
 
 def get_dataset_metadata(dataset):
     # get dataset's metadata
@@ -46,6 +32,23 @@ def get_dataset_metadata(dataset):
     print(f'train_dataset.samples: {dataset.samples}')
     print(f'train_dataset.targets: {dataset.targets}')
     print(f'train_dataset.transforms: {dataset.transforms}')
+
+def get_class_dist_from_dataset(dataset, num_classes):
+    # the function calculates the class distribution of a dataset
+    class_indices = {class_index: [] for class_index in range(num_classes)}
+
+    for i, (data, label) in enumerate(dataset):
+        class_indices[label].append(i)
+
+    class_dist = {cls: len(class_indices[cls]) for cls in class_indices}
+    class_to_idx = dataset.class_to_idx
+    idx2class = {v: k for k, v in class_to_idx.items()}
+
+    print('class distribution in dataset:')
+    print(class_dist)
+    print(idx2class)
+
+    return class_indices, class_dist, idx2class
 
 def denormalize_img_tensor_plot(img_tensor, plot=True):
     # denormalize img_tensor and convert to a PIL image, and then plot the PIL image
@@ -99,14 +102,32 @@ def save_dataset_images(dataset, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     img_num = 0
     for img, label in dataset:
-        img_denormalized, img_pil = plot_img_tensor_denormalize2(img, plot=True)
+        img_denormalized, img_pil = denormalize_img_tensor_plot2(img, plot=True)
         plt.imshow(img_pil)
         plt.savefig(output_dir + str(img_num) + '.png')
         img_num += 1
         print('img: ', img_num)
 
+def create_dataloader(train_dataset, val_dataset, bs_train, bs_val):
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=bs_train,
+                                               shuffle=True, num_workers=2)
 
-def plot_dataloder_as_grid(dataloader, output_dir_grid):
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=bs_val,
+                                             shuffle=False, num_workers=2)
+    return train_loader, val_loader
+
+def get_class_dist_from_dataloader(data_loader, num_classes):
+    # the function calculates the class distribution of a dataloader
+    class_counts = {i: 0 for i in range(num_classes)}
+
+    for _, labels in data_loader:
+        for i in range(num_classes):
+            class_counts[i] += (labels == i).sum().item()
+            # class_counts[i] += sum(labels==i)
+    print(f'class_counts from dataloder: {class_counts}')
+
+    return class_counts
+def plot_dataloder_imgs_on_grid(dataloader, output_dir_grid):
     # Plot images in the dataloader in a grid (the grid looks somewhat "white")
     os.makedirs(output_dir_grid, exist_ok=True)
 
@@ -146,42 +167,54 @@ def plot_dataloder_as_grid(dataloader, output_dir_grid):
     print(f"Grid images with true labels saved in {output_dir_grid}")
 ####
 
-transform = transforms.Compose([
-    transforms.Resize((input_size,input_size)), # (h,w)
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
+if __name__ == "__main__":
 
-train_dataset = ImageFolder(train_data_path, transform=transform)
-val_dataset = ImageFolder(val_data_path, transform=transform)
-get_dataset_metadata(train_dataset)
+    #####
+    train_data_path = "/home/nim/Downloads/cats_and_dogs/train"
+    val_data_path = "/home/nim/Downloads/cats_and_dogs/val"
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=6,
-                                          shuffle=True, num_workers=2)
+    input_size = 192
 
-val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=6,
-                                          shuffle=False, num_workers=2)
+    output_dir_imgs = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/dataset_images/"
+    output_dir_grid = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/grid_images"
+
+    ###
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    print(f'device: {device}')
+    #
+    transform = transforms.Compose([
+        transforms.Resize((input_size,input_size)), # (h,w)
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+
+    train_dataset = ImageFolder(train_data_path, transform=transform)
+    val_dataset = ImageFolder(val_data_path, transform=transform)
+    get_dataset_metadata(train_dataset)
 
 
-##### dataset - plot image
-img_i = 0
-img_path = train_dataset.imgs[img_i][0] # str
-label = train_dataset.__getitem__(img_i)[1] # int
-img_tensor = train_dataset.__getitem__(img_i)[0] #  type(img_tensor) - torch.Tensor, img_tensor.dtype - torch.float32
 
-img_denormalized, img_pil = denormalize_img_tensor_plot(img_tensor, plot=True)
+    ##### dataset - plot image
+    img_i = 0
+    img_path = train_dataset.imgs[img_i][0] # str
+    label = train_dataset.__getitem__(img_i)[1] # int
+    img_tensor = train_dataset.__getitem__(img_i)[0] #  type(img_tensor) - torch.Tensor, img_tensor.dtype - torch.float32
 
-# save_dataset_images(train_dataset, output_dir_imgs) # Save the whole train_dataset
+    img_denormalized, img_pil = denormalize_img_tensor_plot(img_tensor, plot=True)
 
-##### dataloader - plot image
-for i, data in enumerate(train_loader, 0):
-    inputs, labels = data
-    inputs, labels = data[0].to(device), data[1].to(device)  # inputs.dtype and labels.dtype - torch.int64
-    print(f'inputs.shape: {inputs.shape}, labels: {labels.shape}')
-    if i == 3:
-        break
-denormalize_img_tensor_plot(inputs[0]) # plot the first image of the current batch (also normalize the image)
+    # save_dataset_images(train_dataset, output_dir_imgs) # Save the whole train_dataset
 
-# plot images from dataloader on a grid, and save grid images
-plot_dataloder_as_grid(train_loader, output_dir_grid)
+    train_loader, val_loader = create_dataloader(train_dataset, val_dataset, bs_train=6, bs_val=6)
+
+    ##### dataloader - plot image
+    for i, data in enumerate(train_loader, 0):
+        inputs, labels = data
+        inputs, labels = data[0].to(device), data[1].to(device)  # inputs.dtype and labels.dtype - torch.int64
+        print(f'inputs.shape: {inputs.shape}, labels: {labels.shape}')
+        if i == 3:
+            break
+    denormalize_img_tensor_plot(inputs[0]) # plot the first image of the current batch (also normalize the image)
+
+    # plot images from dataloader on a grid, and save grid images
+    # plot_dataloder_imgs_on_grid(train_loader, output_dir_grid)
 

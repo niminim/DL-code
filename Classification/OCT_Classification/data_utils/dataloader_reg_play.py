@@ -1,22 +1,19 @@
-import os
 import torch
-from torch.utils.data import random_split
+from torch.utils.data import Dataset, DataLoader, random_split, SubsetRandomSampler, WeightedRandomSampler
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from torchvision import transforms
-from torch.utils.data import DataLoader, Dataset
 from torchvision.datasets import ImageFolder
-from torch.utils.data import Dataset, DataLoader, random_split, SubsetRandomSampler, WeightedRandomSampler
 
 import numpy as np
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from PIL import Image
-import cv2
+from Classification.OCT_Classification.data_utils.data_loader_utils import create_dataloader, get_class_dist_from_dataloader, get_class_dist_from_dataset
+# it runs the whole module if there's no if == main
 
-import matplotlib
 matplotlib.use('Qt5Agg')
 
 ### The following code simply uses ImageDaraFolder to create the train and val datasets
@@ -26,6 +23,8 @@ matplotlib.use('Qt5Agg')
 
 #####
 data_path = "/home/nim/Downloads/cats_and_dogs/train"
+
+data_path = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_01/train'
 
 ###
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -38,30 +37,19 @@ transform = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
-transform_val = transforms.Compose([
-    transforms.Resize((224,224)), # (h,w)
-    transforms.ToTensor(),
-])
 
 dataset = ImageFolder(data_path, transform=transform)
-class_to_idx = dataset.class_to_idx
-idx2class = {v: k for k, v in class_to_idx.items()}
+data_loader = torch.utils.data.DataLoader(dataset, batch_size=1,
+                                           shuffle=True, num_workers=2)
 
+num_classes = len(dataset.classes)
 
-def get_class_distribution(dataset_obj):
-    count_dict = {k: 0 for k, v in dataset_obj.class_to_idx.items()}
-
-    for element in dataset_obj:
-        y_lbl = element[1]
-        y_lbl = idx2class[y_lbl]
-        count_dict[y_lbl] += 1
-    return count_dict
-count_dict = get_class_distribution(dataset)
-print("Distribution of classes: \n", count_dict)
+class_indices, class_dist, idx2class = get_class_dist_from_dataset(dataset, num_classes)
+class_counts = get_class_dist_from_dataloader(data_loader, num_classes)
 
 # plot the dataset distribution
 plt.figure(figsize=(15,8))
-sns.barplot(data = pd.DataFrame.from_dict([get_class_distribution(dataset)]).melt(),
+sns.barplot(data = pd.DataFrame.from_dict([class_dist]).melt(),
             x = "variable", y="value", hue="variable").set_title('Class Distribution')
 ####
 
@@ -69,30 +57,16 @@ sns.barplot(data = pd.DataFrame.from_dict([get_class_distribution(dataset)]).mel
 ### Create dataloaders using random_split (for get_class_distribution_loaders implementation must equal 1)
 # Beware of having one transform for both datasets!
 # Keep in mind the train-set is addressed as the whole dataset here.
+# Keep in mind the train-set is addressed as the whole dataset here.
 # random_split transform the "dataset" into "dataset.Subset" which has no ".transform" --> random_split is not very useful
 
 n_imgs_train = int(len(dataset.samples) * 0.8)
 n_imgs_val = int(len(dataset.samples) - n_imgs_train)
 train_dataset, val_dataset = random_split(dataset, (n_imgs_train, n_imgs_val))
+train_loader, val_loader = create_dataloader(train_dataset, val_dataset, bs_train=1, bs_val=1) # bs must equal for to comply with func that calculates claas-dist
 
-
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1,
-                                          shuffle=True, num_workers=2)
-
-val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=1,
-                                          shuffle=False, num_workers=2)
-#
-
-# Show Class-Distribution in the new random train-val splits
-def get_class_distribution_loaders(dataloader_obj, dataset_obj):
-    count_dict = {k: 0 for k, v in dataset_obj.class_to_idx.items()}
-
-    for _, j in dataloader_obj:
-        y_idx = j.item()
-        y_lbl = idx2class[y_idx]
-        count_dict[str(y_lbl)] += 1
-
-    return count_dict
+class_counts_train = get_class_dist_from_dataloader(train_loader, num_classes=2)
+class_counts_val = get_class_dist_from_dataloader(val_loader, num_classes=2)
 
 def plot_class_dir_loaders(train_dist, val_dist):
     # plots the class distribution in the train and val sets
@@ -102,13 +76,13 @@ def plot_class_dir_loaders(train_dist, val_dist):
     sns.barplot(data = pd.DataFrame.from_dict([val_dist]).melt(),
                 x = "variable", y="value", hue="variable",  ax=axes[1]).set_title('Val Set')
 
-train_dist = get_class_distribution_loaders(train_loader, dataset)
-val_dist = get_class_distribution_loaders(val_loader, dataset)
-plot_class_dir_loaders(train_dist, val_dist)
+# Show Class-Distribution in the new random train-val splits
+plot_class_dir_loaders(class_counts_train, class_counts_val)
 #######
 
 
 #########  SubsetRandomSampler
+# Here we split the dataset to train and val (by indices)
 dataset_size = len(dataset)
 dataset_indices = list(range(dataset_size))
 np.random.shuffle(dataset_indices)
@@ -120,24 +94,25 @@ val_sampler = SubsetRandomSampler(val_idx)
 
 train_loader = DataLoader(dataset=dataset, shuffle=False, batch_size=1, sampler=train_sampler)
 val_loader = DataLoader(dataset=dataset, shuffle=False, batch_size=1, sampler=val_sampler)
-val_loader.dataset.transform = transform_val # if necessary
+# val_loader.dataset.transform = transform_val # if necessary
 
-train_dist = get_class_distribution_loaders(train_loader, dataset)
-val_dist = get_class_distribution_loaders(val_loader, dataset)
-plot_class_dir_loaders(train_dist, val_dist)
+class_counts_train = get_class_dist_from_dataloader(train_loader, num_classes=2)
+class_counts_val = get_class_dist_from_dataloader(val_loader, num_classes=2)
+plot_class_dir_loaders(class_counts_train, class_counts_val)
 ###
 
-#########  WeightedRandomSampler
+#########  WeightedRandomSampler (this is how to do it)
 # using this is relevant only for the train-loader. should be performed on train-dataset only
 # train-dataset should be created in advance (without indexing) if we want to use WeightedRandomSampler
 
 target_list = torch.tensor(dataset.targets)
 
 # Get the class counts and calculate the weights/class by taking its reciprocal.
-class_count = [i for i in get_class_distribution(dataset).values()] # Both are identical
-class_count = list(get_class_distribution(dataset).values()) # Both are identical
+class_indices, class_dist, idx2class = get_class_dist_from_dataset(dataset, num_classes)
+class_counts = get_class_dist_from_dataloader(data_loader, num_classes)
 
-class_weights = 1./torch.tensor(class_count, dtype=torch.float)
+values_list = list(class_counts.values())
+class_weights = 1./torch.tensor(values_list, dtype=torch.float)
 
 # Assign the weight of each class to all the samples
 class_weights_all = class_weights[target_list] # sum(class_weights_all) = N_classes
@@ -148,15 +123,22 @@ weighted_sampler = WeightedRandomSampler(
     replacement=True
 )
 
-train_loader = DataLoader(dataset=dataset, shuffle=False, batch_size=8, sampler=weighted_sampler)
+train_loader = DataLoader(dataset=dataset, shuffle=False, batch_size=32,sampler=weighted_sampler)
 
+class_counts_by_batch = {i: 0 for i in range(num_classes)}
+for idx, (data,label) in enumerate(train_loader):
+    for k,v in class_counts_by_batch.items():
+        class_counts_by_batch[k] += sum(label == k).item()
+    print(f"batch index: {idx}, class 0: {class_counts_by_batch[0]}, class 1: {class_counts_by_batch[1]}, class 2: {class_counts_by_batch[2]}, class 3: {class_counts_by_batch[3]}")
+
+### Only for cats and dogs
 sum_0, sum_1 = 0, 0
 for idx, (data,label) in enumerate(train_loader):
     sum_0 += sum(label == 0)
     sum_1 += sum(label == 1)
     print(f"batch index: {idx}, class 0: {sum(label == 0)}, class 1: {sum(label == 1)}")
 print(f"sum class 0: {sum_0}, sum class 1: {sum_1}")
-
+####
 
 it = iter(train_loader)
 data, labels = it.__next__()
@@ -172,6 +154,8 @@ for idx, (data, label) in enumerate(train_dataset):
     train_target_list.append(label)
     train_class_count[label] += 1
 
+class_indices, class_dist, idx2class = get_class_dist_from_dataset(train_dataset, num_classes=2)
+
 train_class_weights = 1./torch.tensor(train_class_count, dtype=torch.float)
 train_class_weights_all = train_class_weights[train_target_list] # sum(class_weights_all) = N_classes
 
@@ -180,7 +164,6 @@ weighted_sampler = WeightedRandomSampler(
     num_samples=len(train_class_weights_all),
     replacement=True
 )
-
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10,sampler=weighted_sampler, num_workers=0)
 
 for idx, (data,label) in enumerate(train_loader):
@@ -188,9 +171,8 @@ for idx, (data,label) in enumerate(train_loader):
     print(f"class 0: {sum(label == 0)}, class 1: {sum(label == 1)}")
 
 
-# Basically the same for SubsetRandomSampler
-# https://stackoverflow.com/questions/67250023/related-to-subsetrandomsampler
 
-
-# Or in more length (plus calculate data mean and std (of images)
-# https://blogs.oracle.com/ai-and-datascience/post/transfer-learning-in-pytorch-part-1-how-to-use-dataloaders-and-build-a-fully-connected-class
+# https://towardsdatascience.com/demystifying-pytorchs-weightedrandomsampler-by-example-a68aceccb452
+# https://discuss.pytorch.org/t/how-to-handle-imbalanced-classes/11264/2
+# https://www.maskaravivek.com/post/pytorch-weighted-random-sampler/
+# # https://blogs.oracle.com/ai-and-datascience/post/transfer-learning-in-pytorch-part-1-how-to-use-dataloaders-and-build-a-fully-connected-class (plus calculate data mean and std (of images)

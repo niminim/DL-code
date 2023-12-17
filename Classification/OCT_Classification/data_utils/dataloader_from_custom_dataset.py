@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Qt5Agg')
 
+from Classification.OCT_Classification.data_utils.data_loader_utils import create_dataloader, get_class_dist_from_dataloader, get_class_dist_from_dataset
+# it runs the whole module if there's no if == main
+
 class CustomDatasetFromCSV(Dataset):
     def __init__(self, csv_file, base_data_folder, transform=None):
         """
@@ -88,11 +91,7 @@ transform = transforms.Compose([
 train_dataset = CustomDatasetFromCSV(csv_file=train_csv_file_path, base_data_folder=base_data_folder, transform=transform)
 val_dataset = CustomDatasetFromCSV(csv_file=val_csv_file_path, base_data_folder=base_data_folder, transform=transform)
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=24,
-                                          shuffle=True, num_workers=2)
-
-val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=24,
-                                          shuffle=False, num_workers=2)
+train_loader, val_loader = create_dataloader(train_dataset, val_dataset, bs_train=24, bs_val=24)
 
 # Print the instance metadata and plot the image
 plot_sample_by_index(train_dataset, index=10)
@@ -100,10 +99,8 @@ plot_sample_by_index(train_dataset, index=10)
 # Save images from the dataset
 # save_dataset_imgs(dataset=train_dataset, save_path=save_imgs_dir, num_imgs=50)
 
-it = iter(train_loader)
-it.__next__()[0].shape # torch.Size([24, 1, 224, 224])
-
-
+# it = iter(train_loader)
+# it.__next__()[0].shape # torch.Size([24, 1, 224, 224])
 
 
 # https://github.com/utkuozbulak/pytorch-custom-dataset-examples
