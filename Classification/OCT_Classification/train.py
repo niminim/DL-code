@@ -16,7 +16,7 @@ from Classification.OCT_Classification.test_utils import *
 # os.chdir('/home/nim/venv/DL-code/Classification')
 
 input_size = 224
-model_name = 'mixnet' # efficientnet, mobilenetv3, mixnet
+model_name = 'efficientnet_b0' # efficientnet_b0, efficientnet_b1, mobilenetv3, mixnet
 
 
 ###### Train from folder
