@@ -16,7 +16,7 @@ from Classification.OCT_Classification.test_utils import *
 # os.chdir('/home/nim/venv/DL-code/Classification')
 
 input_size = 224
-model_name = 'efficientnet' # mobilenet, efficientnet
+model_name = 'mixnet' # efficientnet, mobilenetv3, mixnet
 
 
 ###### Train from folder
@@ -29,7 +29,9 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=6, gamma=0.2)
 
-for epoch in range(40):  # loop over the dataset multiple times
+from time import time
+t0 = time()
+for epoch in range(10):  # loop over the dataset multiple times
     print(f'epoch: {epoch}')
     running_loss = 0.0
     correct = 0
@@ -57,11 +59,13 @@ for epoch in range(40):  # loop over the dataset multiple times
     scheduler.step()
     running_loss = 0.0
 print('Finished Training')
+t1 = time()
+print(f'time: {t1-t0}')
 
 
 probs_and_labels, val_preds, true_labels = evaluate(model, val_dataset, val_loader, device)
 cm, cr = get_metrics(val_preds, true_labels, val_dataset)
-
+####
 
 
 ############# ###### Train from CSV

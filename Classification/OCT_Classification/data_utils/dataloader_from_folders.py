@@ -2,7 +2,6 @@ import os
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
-from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
 from Classification.OCT_Classification.data_utils.dataset_transforms import get_transform

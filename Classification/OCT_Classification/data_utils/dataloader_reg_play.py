@@ -1,8 +1,6 @@
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split, SubsetRandomSampler, WeightedRandomSampler
 from torch.utils.data.sampler import SubsetRandomSampler
-
-from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
 import numpy as np
