@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Qt5Agg')
 
-from Classification.OCT_Classification.data_utils.dataset_transforms import get_transform
+from Classification.OCT_Classification.data_utils.dataset_transforms import get_one_ch_transform
 from Classification.OCT_Classification.data_utils.data_loader_utils import create_dataloader, get_class_dist_from_dataloader, get_class_dist_from_dataset
 # it runs the whole module if there's no if == main
 
@@ -21,6 +21,7 @@ class CustomDatasetFromCSV(Dataset):
             transform (callable, optional): Optional transform to be applied on a sample.
         """
         self.data_frame = pd.read_csv(csv_file, index_col=None)
+        self.base_data_folder = base_data_folder
         self.transform = transform
 
     def __len__(self):
@@ -32,7 +33,7 @@ class CustomDatasetFromCSV(Dataset):
         label = self.data_frame.iloc[idx, 2]
         width = int(self.data_frame.iloc[idx, 3])
         height = int(self.data_frame.iloc[idx, 4])
-        filepath = os.path.join(base_data_folder,phase, label, img_name)
+        filepath = os.path.join(base_data_folder, phase, label, img_name)
 
         # Open the image file
         img = Image.open(filepath)
@@ -76,20 +77,35 @@ def save_dataset_imgs(dataset, save_dir, num_imgs):
 split = '0_01'
 # split = '0_035'
 
+main_data_utils_dir = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils'
 base_data_folder = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_01' # data path
-train_csv_file_path = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits/train_split_0_01.csv' # csv of same data
-val_csv_file_path = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits/val_split_0_01.csv' # csv of same data
-save_imgs_dir = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/custom_dataset_images' # dir  to save samples from the dataset
+train_csv_file_path = os.path.join(main_data_utils_dir, 'csv_splits/train_split_0_01.csv')# csv of same data
+val_csv_file_path = os.path.join(main_data_utils_dir, 'csv_splits/val_split_0_01.csv')# # csv of same data
+save_imgs_dir = os.path.join(main_data_utils_dir,'custom_dataset_images') # dir  to save samples from the dataset
 
 
-transform = get_transform(input_size=224)
+transform = get_one_ch_transform(input_size=224)
 
 # Create an instance of your custom dataset
 train_dataset = CustomDatasetFromCSV(csv_file=train_csv_file_path, base_data_folder=base_data_folder, transform=transform)
 val_dataset = CustomDatasetFromCSV(csv_file=val_csv_file_path, base_data_folder=base_data_folder, transform=transform)
 
 train_loader, val_loader = create_dataloader(train_dataset, val_dataset, bs_train=24, bs_val=24)
-class_counts = get_class_dist_from_dataloader(train_loader, num_classes=4)
+
+def get_class_dist_from_dataloader_custom_csv(data_loader, csv_file_path):
+    # the function calculates the class distribution of a dataloader
+    df_train = pd.read_csv(csv_file_path, index_col=None)
+    labels = list(df_train['label'].unique())
+    class_counts = {i: 0 for i in labels}
+
+    for imgs, labels, img_data in data_loader:
+        for label in labels:
+            class_counts[label] += 1
+    print(f'class_counts from dataloder: {class_counts}')
+
+    return class_counts
+
+class_counts = get_class_dist_from_dataloader_custom_csv(train_loader, train_csv_file_path)
 
 # Print the instance metadata and plot the image
 plot_sample_by_index(train_dataset, index=10)

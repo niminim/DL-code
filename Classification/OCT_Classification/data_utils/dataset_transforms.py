@@ -11,6 +11,14 @@ def get_transform(input_size):
     ])
     return transform
 
+def get_one_ch_transform(input_size):
+    transform = transforms.Compose([
+        transforms.Resize((input_size,input_size)), # (h,w)
+        # transforms.RandomRotation((-20,20)),
+        transforms.ToTensor(),
+    ])
+    return transform
+
 def get_test_transform(input_size):
     transform = transforms.Compose([
         transforms.Resize((input_size,input_size)), # (h,w)
