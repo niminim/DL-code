@@ -78,9 +78,9 @@ split = '0_01'
 # split = '0_035'
 
 main_data_utils_dir = '/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils'
-base_data_folder = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_01' # data path
-train_csv_file_path = os.path.join(main_data_utils_dir, 'csv_splits/train_split_0_01.csv')# csv of same data
-val_csv_file_path = os.path.join(main_data_utils_dir, 'csv_splits/val_split_0_01.csv')# # csv of same data
+base_data_folder = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_' + split # data path
+train_csv_file_path = os.path.join(main_data_utils_dir, 'csv_splits/train_split_' + split + '.csv')# csv of same data
+val_csv_file_path = os.path.join(main_data_utils_dir, 'csv_splits/val_split_' + split + '.csv')# # csv of same data
 save_imgs_dir = os.path.join(main_data_utils_dir,'custom_dataset_images') # dir  to save samples from the dataset
 
 

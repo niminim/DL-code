@@ -3,11 +3,11 @@
 # https://github.com/SamirPaul1/DSAlgo/blob/main/01_Problem-Solving-LeetCode/1-two-sum/1-two-sum.py
 # ChatGPT Solution (similiar to 1)
 def twoSum(nums, target):
-    num_dict = {}
+    num_dict = {} # num_dict stores the value-index pairs
     for i, num in enumerate(nums):
         complement = target - num
-        if complement in num_dict:
-            return [num_dict[complement], i]
+        if complement in num_dict: # checking the keys in num_dict
+            return [num_dict[complement], i] # return the index of the complement (in num_dict) and current index
         num_dict[num] = i
         print(num_dict)
     return []
@@ -20,6 +20,11 @@ print(result)
 
 # More solutions: https://github.com/kamyu104/LeetCode-Solutions/blob/master/Python/add-two-numbers.py
 # https://github.com/Garvit244/Leetcode/blob/master/1-100q/TwoSum.py
+
+# for all solution we can create "solutions = []" from the start
+# do the same, but go over all the numbers in the list
+# when find a solution: solutions.append([num_dict[complement], i])
+# at the end: return solutions
 #####
 
 ###
@@ -58,6 +63,10 @@ def isPalindrome(x): # solve without converting to integer
 num = 121
 result = isPalindrome(num)
 print(result)
+
+# in this approach we build the reversed number from right to left - find the digit, multiply by 10, and add that to the "current" reversed number,
+# then we drop the last digit from the "current number" by //10
+# we do that until our number is no longer greater than zero, and that's our reversed number
 
 ####
 
@@ -120,11 +129,11 @@ class Solution:
 
         i = 0
         while i < n:
-            if i < n - 1 and s[i:i + 2] in dic:
+            if i < n - 1 and s[i:i + 2] in dic: # check a combination of two letters
                 res += dic[s[i:i + 2]]
                 i += 2
             else:
-                res += dic[s[i:i + 1]]
+                res += dic[s[i:i + 1]] # go letter by letter (dic[s[i:i + 1]] = dic[s[i:]])
                 i += 1
 
         return res
