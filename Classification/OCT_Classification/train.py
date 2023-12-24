@@ -1,5 +1,6 @@
 import os, sys
 import numpy as np
+from time import time
 
 import torch
 import torch.nn as nn
@@ -29,7 +30,6 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=6, gamma=0.2)
 
-from time import time
 t0 = time()
 for epoch in range(10):  # loop over the dataset multiple times
     print(f'epoch: {epoch}')

@@ -136,7 +136,6 @@ class Siamese(Cat):
 
 
 
-
 ### Encapsulation:
 # Encapsulation restricts access to certain attributes or methods, making them private or protected.
 # Use a single underscore _ for protected attributes and double underscore __ for private attributes:
@@ -170,3 +169,22 @@ class Circle(Shape):
         return 3.14 * self.radius ** 2
 
 
+#### Data Classes
+
+from dataclasses import dataclass
+
+@dataclass
+class Student:
+    name: str
+    age: int
+    grade: float
+
+    def is_passing(self):
+        return self.grade >= 2.0
+
+# Creating an instance of the Student class
+student = Student(name="Alice", age=20, grade=3.5)
+
+# Using the instance
+print(student.name)  # Output: Alice
+print(student.is_passing())  # Output: True

@@ -1,0 +1,49 @@
+model:
+  architecture: EfficientNet  # Model architecture
+  in_channels: 3 # input channels in the data
+  num_classes: 4 # number of classes in the classification task
+  pretrained: true  # Use pretrained weights
+
+
+training:
+  learning_rate: 0.001  # Initial learning rate
+  learning_rate_decay:
+    rate: 0.2 # Decay rate
+    step_size: 7  # Decay step size
+  batch_size: 32  # Batch size for training
+  epochs: 20  # Number of training epochs
+  optimizer: SGD  # Optimizer type
+  optimizer_params:
+    momentum: 0.9
+    nesterov: true
+  loss_function: CrossEntropyLoss  # Loss function
+  regularization:
+    l2: 0.01  # L2 regularization factor
+
+data:
+  train_path: /path/to/train_data  # Path to training data
+  validation_path: /path/to/validation_data  # Path to validation data
+  test_path: /path/to/test_data  # Path to test data
+  preprocess:
+    resize: [224, 224]  # Resize dimensions for input images
+    normalize:  # Normalization parameters
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+  augmentation:  # Data augmentation settings
+    random_flip: true
+    random_crop: true
+    rotation_degree: 10
+
+environment:
+  use_gpu: true  # Flag to use GPU if available
+  gpu_id: 0  # GPU ID for multi-GPU setups
+  seed: 42  # Seed for reproducibility
+  num_workers: 4  # Number of workers for data loading
+
+logging:
+  log_interval: 10  # Interval for printing logs
+  save_model: true  # Flag to save the model after training
+  checkpoint_dir: /path/to/save/checkpoints  # Directory to save checkpoints
+  tensorboard:
+    use_tensorboard: true  # Enable TensorBoard logging
+    log_dir: /path/to/save/tensorboard_logs  # Directory for TensorBoard logs
