@@ -41,6 +41,7 @@ environment:
   num_workers: 4  # Number of workers for data loading
 
 logging:
+  logfile_path: /home/nim/venv/DL-code/Classification/OCT_Classification/logs/training_logs
   log_interval: 10  # Interval for printing logs
   save_model: true  # Flag to save the model after training
   checkpoint_dir: /path/to/save/checkpoints  # Directory to save checkpoints

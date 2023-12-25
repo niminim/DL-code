@@ -1,6 +1,7 @@
 import os, sys
 import numpy as np
 from time import time
+from datetime import datetime
 
 import torch
 import torch.nn as nn
@@ -10,14 +11,16 @@ import torch.optim as optim
 
 from Classification.OCT_Classification.models.build_model import get_model
 from Classification.OCT_Classification.test_utils import *
+from Classification.OCT_Classification.logs.logging_helper import *
 
+logger = get_logger(config)
 
 # print(os.getcwd()) # get current working directory
 # sys.path.append('/home/nim/venv/DL-code/Classification/OCT_Classification')
 # os.chdir('/home/nim/venv/DL-code/Classification')
 
 input_size = 224
-model_name = 'efficientnet_b0' # efficientnet_b0, efficientnet_b1, mobilenetv3, mixnet
+model_name = 'mobilenetv3' # efficientnet_b0, efficientnet_b1, mobilenetv3, mixnet
 
 
 ###### Train from folder
@@ -30,10 +33,12 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=6, gamma=0.2)
 
-t0 = time()
-for epoch in range(10):  # loop over the dataset multiple times
+
+start_time = datetime.now()
+logger.info(f'Training started at {start_time}')
+for epoch in range(1,7+1):  # loop over the dataset multiple times
     print(f'epoch: {epoch}')
-    running_loss = 0.0
+    training_loss = 0.0
     correct = 0
     total = 0
     print(f'lr: {scheduler.get_lr()[0]}')
@@ -46,22 +51,24 @@ for epoch in range(10):  # loop over the dataset multiple times
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-        running_loss += loss.item()
+        training_loss += loss.item()
 
         scores, predicted = torch.max(outputs.data, 1)
         probs = torch.nn.functional.softmax(outputs, dim=1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-    print(f'running loss: {running_loss/len(train_loader):.2f}')
-    print(f'train acc: {100*(correct/total):.2f}%')
-    print('*****')
+    training_loss = training_loss / len(train_loader)
+    train_acc = 100 * (correct / total)
+    print(f'running loss: {training_loss:.2f}')
+    print(f'train acc: {train_acc:.2f}%')
+    logger.info(f'Epoch {epoch} completed. Train Loss: {training_loss:.2f}, Train Acc: {train_acc:.2f}%')
     scheduler.step()
-    running_loss = 0.0
+    training_loss = 0.0
 print('Finished Training')
-t1 = time()
-print(f'time: {t1-t0}')
-
+end_time = datetime.now()
+logger.info(f'Training finished at {end_time}')
+# close_logger(logger)
 
 probs_and_labels, val_preds, true_labels = evaluate(model, val_dataset, val_loader, device)
 cm, cr = get_metrics(val_preds, true_labels, val_dataset)
@@ -79,7 +86,7 @@ scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=6, gamma=0.2)
 
 for epoch in range(40):  # loop over the dataset multiple times
     print(f'epoch: {epoch}')
-    running_loss = 0.0
+    training_loss = 0.0
     correct = 0
     total = 0
     print(f'lr: {scheduler.get_lr()[0]}')
@@ -102,13 +109,17 @@ for epoch in range(40):  # loop over the dataset multiple times
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-    print(f'running loss: {running_loss/len(train_loader):.2f}')
+    training_loss = training_loss/len(train_loader)
+    print(f'running loss: {training_loss:.2f}')
     print(f'train acc: {100*(correct/total):.2f}%')
+    logger.info(f'Epoch {epoch} completed. Total Loss: {training_loss}')
+
     scheduler.step()
     running_loss = 0.0
 print('Finished Training')
 
 
+logger.info('Training completed.')
 correct, total = 0, 0
 all_preds = torch.empty(0,).to(device)
 all_probs = torch.empty(0, 4).to(device) # when creating dataset from CSV there's no .classes
