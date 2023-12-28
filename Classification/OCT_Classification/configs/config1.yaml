@@ -1,29 +1,33 @@
 model:
-  architecture: EfficientNet  # Model architecture
+  architecture: efficientnet_b1  # Model architecture - efficientnet_b0, efficientnet_b1, mobilenetv3, mixnet
   in_channels: 3 # input channels in the data
   num_classes: 4 # number of classes in the classification task
   pretrained: true  # Use pretrained weights
 
 
-training:
-  learning_rate: 0.001  # Initial learning rate
-  learning_rate_decay:
+train:
+  input_size: [224,224] # (h,w)
+  lr: 0.001  # Initial learning rate
+  lr_decay:
     rate: 0.2 # Decay rate
     step_size: 7  # Decay step size
   batch_size: 32  # Batch size for training
-  epochs: 20  # Number of training epochs
-  optimizer: SGD  # Optimizer type
-  optimizer_params:
+  epochs: 10  # Number of training epochs
+  optim: SGD  # Optimizer type
+  optim_params:
     momentum: 0.9
     nesterov: true
-  loss_function: CrossEntropyLoss  # Loss function
+  bs_train: 48 # train batch-size
+  bs_test: 48 # test batch-size
+  loss_fn: CrossEntropyLoss  # Loss function
   regularization:
     l2: 0.01  # L2 regularization factor
 
+
 data:
-  train_path: /path/to/train_data  # Path to training data
-  validation_path: /path/to/validation_data  # Path to validation data
-  test_path: /path/to/test_data  # Path to test data
+  train_path: /home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_035/train  # Path to training data
+  val_path: /home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split_0_035/val  # Path to validation data
+  test_path: /home/nim/Downloads/OCT_and_X-ray/OCT2017/test  # Path to test data
   preprocess:
     resize: [224, 224]  # Resize dimensions for input images
     normalize:  # Normalization parameters

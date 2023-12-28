@@ -169,8 +169,8 @@ if __name__ == "__main__":
 
     input_size = 192
 
-    output_dir_imgs = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/dataset_images/"
-    output_dir_grid = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/grid_images"
+    output_dir_imgs = "/Classification/OCT_Classification/data_utils/saved_files/dataset_images/"
+    output_dir_grid = "/Classification/OCT_Classification/data_utils/saved_files/grid_images"
 
     ###
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

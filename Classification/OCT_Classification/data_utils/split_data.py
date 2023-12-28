@@ -9,7 +9,7 @@ import json, csv
 # Paths
 source = "/home/nim/Downloads/OCT_and_X-ray/OCT2017/train"
 new_data_dir = "/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split"
-csv_dir = "/home/nim/venv/DL-code/Classification/OCT_Classification/data_utils/csv_splits"
+csv_dir = "/Classification/OCT_Classification/data_utils/saved_files/csv_splits"
 
 # Constants
 DATA_FRACTION = 0.035

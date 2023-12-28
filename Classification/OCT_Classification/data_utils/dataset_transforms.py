@@ -1,13 +1,12 @@
 import torch
 from torchvision import transforms
 
-
-def get_transform(input_size):
+def get_train_transform(config):
     transform = transforms.Compose([
-        transforms.Resize((input_size,input_size)), # (h,w)
+        transforms.Resize(config['train']['input_size']), # (h,w)
         transforms.RandomRotation((-20,20)),
         transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        transforms.Normalize(config['data']['preprocess']['normalize']['mean'], config['data']['preprocess']['normalize']['std'])
     ])
     return transform
 
@@ -19,10 +18,10 @@ def get_one_ch_transform(input_size):
     ])
     return transform
 
-def get_test_transform(input_size):
+def get_test_transform(config):
     transform = transforms.Compose([
-        transforms.Resize((input_size,input_size)), # (h,w)
+        transforms.Resize(config['train']['input_size']), # (h,w)
         transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        transforms.Normalize(config['data']['preprocess']['normalize']['mean'], config['data']['preprocess']['normalize']['std'])
     ])
     return transform
