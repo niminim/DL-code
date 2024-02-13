@@ -17,7 +17,6 @@ if __name__ == "__main__":
     from torch.optim.lr_scheduler import StepLR
 
 
-
     model = models.efficientnet_b1(weights='IMAGENET1K_V1', progress=True)
     model.features[0][0] = nn.Conv2d(in_channels=config['model']['in_channels'],
                                      out_channels=32, kernel_size=(3, 3), stride=(2, 2),
