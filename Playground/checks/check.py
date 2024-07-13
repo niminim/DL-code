@@ -14,7 +14,7 @@ import scipy as sc
 import pandas as pd
 
 import cv2
-import tensorflow as tf
+#import tensorflow as tf
 
 print('Current Package Versions')
 print(f'torch:  {torch.__version__}, CUDA: {torch.cuda.is_available()}')
@@ -32,6 +32,6 @@ print('scipy: ', sc.__version__)
 print('pandas: ', pd.__version__)
 
 print('opencv: ', cv2.__version__)
-print('tensorflow: ', tf.__version__)
+#print('tensorflow: ', tf.__version__)
 
 
