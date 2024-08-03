@@ -1,5 +1,7 @@
 import torch
 import torchvision
+import torchaudio
+
 import timm
 import huggingface_hub
 import transformers
@@ -19,6 +21,7 @@ import cv2
 print('Current Package Versions')
 print(f'torch:  {torch.__version__}, CUDA: {torch.cuda.is_available()}')
 print('torchvision: ', torchvision.__version__)
+print('torchaudio: ', torchaudio.__version__)
 print('timm: ', timm.__version__)
 print('huggingface_hub: ', huggingface_hub.__version__)
 print('transformers: ', transformers.__version__)

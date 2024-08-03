@@ -32,6 +32,8 @@ dict1.update(dict2)
 
 ##3 Accessing Dictionary Elements:
 
+my_dict = {'a': 1, 'b': 2}
+
 # get(key, default): Get the value associated with a key. Return a default value if the key is not found.
 value = my_dict.get('key', default_value)
 
@@ -43,7 +45,7 @@ all_values = my_dict.values()
 
 # items(): Get a list of key-value pairs (tuples) in the dictionary.
 all_items = my_dict.items()
-
+all_items_list = list(all_items)
 
 ### Dictionary Manipulation:
 
@@ -66,9 +68,11 @@ squares = {x: x**2 for x in range(5)}
 ### Membership Testing:
 # in: Check if a key is in the dictionary.
 is_present = 'key' in my_dict
+# Result: False
 
 # not in: Check if a key is not in the dictionary.
 is_absent = 'key' not in my_dict
+# Result: True
 
 
 ### Removal and Deletion:
@@ -139,7 +143,8 @@ switched_dict = {value: key for key, value in my_dict.items()}
 
 ## Dictionary Filtering:
 # Description: Filter a dictionary based on a condition.
-filtered_dict = {k: v for k, v in my_dict.items() if condition}
+filtered_dict = {k: v for k, v in my_dict.items() if v>2}
+filtered_dict = {k: v for k, v in my_dict.items() if ord(k) > ord('a')}
 
 
 

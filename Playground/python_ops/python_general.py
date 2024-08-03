@@ -78,7 +78,7 @@ my_array = np.array([[5, 2, 8, 1, 3],[10,20,30,8,50]])
 # Check if any element is equal to 8
 result = np.any(my_array == 8)
 
-print("Original Array:", my_array)
+print("Original Array: ", my_array)
 print("Is there an element equal to 8?", result)
 if result:
     result_arg = np.argwhere(my_array == 8)
