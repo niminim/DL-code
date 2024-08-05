@@ -5,6 +5,7 @@ import torchaudio
 import timm
 import huggingface_hub
 import transformers
+import diffusers
 import kornia
 import skorch
 import lightning as lt
@@ -25,6 +26,7 @@ print('torchaudio: ', torchaudio.__version__)
 print('timm: ', timm.__version__)
 print('huggingface_hub: ', huggingface_hub.__version__)
 print('transformers: ', transformers.__version__)
+print('diffusers: ', diffusers.__version__)
 print('kornia: ', kornia.__version__)
 print('skorch : ', skorch.__version__)
 print('lightning: ', lt.__version__)

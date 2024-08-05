@@ -20,7 +20,8 @@ identity_matrix = np.eye(3)
 diagonal_elements = np.diag([1, 2, 3])
 
 ## Array Manipulation:
-
+arr1 = [1,2,3]
+arr2 = [4,5,6]
 # Reshape or flatten arrays
 reshaped_arr = arr.reshape((3, 1))
 flattened_arr = arr.flatten()
@@ -50,7 +51,7 @@ arr_2d = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 # Accessing elements
 element = arr_2d[1, 2]  # Get the element at row 1, column 2
 
-# Boolean Indexing: ou can use boolean arrays for indexing, which is particularly useful for conditional filtering
+# Boolean Indexing: you can use boolean arrays for indexing, which is particularly useful for conditional filtering
 mask = arr > 3
 filtered_arr = arr[mask]
 
@@ -87,6 +88,7 @@ cross_indexed_arr = arr_2d[np.ix_(*indices)]
 arr[1:4] = 99
 
 # Integer Array Indexing for Assigning: Assign values using integer array indexing
+arr = np.array([10, 20, 30, 40, 50])
 indices = np.array([1, 3, 4])
 arr[indices] = 0
 
@@ -143,7 +145,11 @@ mean_value = np.mean(arr)
 std_dev = np.std(arr)
 
 # Perform matrix multiplication
+matrix1 = np.array([[1, 2, 3], [4, 5, 6]])
+matrix2 = np.array([[7, 8], [9, 10], [11, 12]])
 matrix_product = np.dot(matrix1, matrix2)
+
+matrix_product = matrix1 @ matrix2
 
 # Compute element-wise trigonometric and exponential functions
 sin_values = np.sin(arr)
@@ -152,6 +158,8 @@ exponential_values = np.exp(arr)
 ## Linear Algebra:
 
 # Compute the inverse and determinant of a matrix
+matrix = np.array([[4, 7],
+                   [2, 6]])
 inverse_matrix = np.linalg.inv(matrix)
 determinant_value = np.linalg.det(matrix)
 
@@ -165,5 +173,6 @@ max_value = np.max(arr)
 median_value = np.median(arr)
 
 # Compute the q-th percentile of the data
+arr = np.array([20, 15, 30, 25, 10, 35, 40, 50, 45, 5])
 percentile_value = np.percentile(arr, 75)
 
