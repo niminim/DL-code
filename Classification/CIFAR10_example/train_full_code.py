@@ -8,17 +8,20 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 import numpy as np
 import json
 import os
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Qt5Agg')  # or 'Qt5Agg' depending on your system
 
 # Configuration dictionary for parameters
 config = {
-    'batch_size': 128,
+    'batch_size': 100,
     'learning_rate': 0.001,
     'num_epochs': 10,
-    'data_dir': './data',
+    'data_dir': '/home/nim/data',
     'num_classes': 10,
     'val_split': 0.2,
     'top_k': 5,
-    'history_file': 'training_history.json'
+    'history_file': '/home/nim/training_history.json'
 }
 
 # Device configuration
@@ -174,8 +177,8 @@ def update_history(history_file, epoch, train_metrics, val_metrics):
     # Prepare the history entry
     epoch_data = {
         'epoch': epoch + 1,
-        'train': train_metrics,
-        'val': val_metrics
+        'train': {k: round(v, 3) for k, v in train_metrics.items()},
+        'val': {k: round(v, 3) for k, v in val_metrics.items()}
     }
 
     # Load existing history if it exists
@@ -198,12 +201,9 @@ def update_metrics(outputs, labels, num_classes, top_k, metrics):
     # Compute metrics
     batch_metrics, _ = compute_metrics(outputs, labels, num_classes, top_k)
 
-    # Round metrics to 3 decimal places
-    batch_metrics = {key: round(value, 3) for key, value in batch_metrics.items()}
-
-    # Update metric sums
+    # Update metric sums with rounded values
     for key in batch_metrics:
-        metrics[key] += batch_metrics[key] * labels.size(0)
+        metrics[key] += round(batch_metrics[key], 3) * labels.size(0)
     metrics['total_samples'] += labels.size(0)
 
 
@@ -212,8 +212,8 @@ def calculate_average_metrics(metrics, loss):
     avg_metrics = {}
     for key in metrics:
         if key != 'total_samples':
-            avg_metrics[key] = metrics[key] / metrics['total_samples']
-    avg_metrics['loss'] = loss / metrics['total_samples']
+            avg_metrics[key] = round(metrics[key] / metrics['total_samples'], 3)
+    avg_metrics['loss'] = round(loss / metrics['total_samples'], 3)
     return avg_metrics
 
 
@@ -223,12 +223,13 @@ def print_metrics(phase, metrics, top_k):
     prefix = phase.capitalize()  # Get the prefix 'Train', 'Val', 'Test' from phase
     print(f'{prefix} - Loss: {metrics["loss"]:.3f}, '
           f'Accuracy: {metrics["accuracy"]:.3f}, '
-          # f'Class Accuracy: {metrics["class_accuracy"]:.4f}, '
+          f'Class Accuracy: {metrics["class_accuracy"]:.3f}, '
           f'Top-{top_k} Accuracy: {metrics["topk_acc"]:.3f}, '
           f'F1 Score: {metrics["f1"]:.3f}, '
           f'Precision: {metrics["precision"]:.3f}, '
           f'Recall: {metrics["recall"]:.3f}, '
           f'AUC: {metrics["auc"]:.3f}')
+
 
 # Function to evaluate on a given data loader
 def evaluate(model, loader, criterion, num_classes, top_k):
@@ -287,14 +288,50 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
 
         # Print metrics at the end of each epoch
         print(f'Epoch [{epoch + 1}/{num_epochs}]')
-        print_metrics("training", train_metrics, top_k)
+        print_metrics("train", train_metrics, top_k)
         print_metrics("validation", val_metrics, top_k)
-        print('**************')
 
         # Update and save training history
         update_history(history_file, epoch, train_metrics, val_metrics)
 
     return train_metrics, val_metrics
+
+
+# Function to plot training and validation metrics from history file
+def plot_metrics(history_file):
+    with open(history_file, 'r') as file:
+        history = json.load(file)
+
+    epochs = [entry['epoch'] for entry in history]
+    train_losses = [entry['train']['loss'] for entry in history]
+    val_losses = [entry['val']['loss'] for entry in history]
+    train_accuracies = [entry['train']['accuracy'] for entry in history]
+    val_accuracies = [entry['val']['accuracy'] for entry in history]
+
+    plt.figure(figsize=(12, 6))
+
+    # Plot losses
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, train_losses, label='Train Loss', marker='o')
+    plt.plot(epochs, val_losses, label='Val Loss', marker='o')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.title('Train and Validation Loss')
+    plt.legend()
+    plt.grid(True)
+
+    # Plot accuracies
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, train_accuracies, label='Train Accuracy', marker='o')
+    plt.plot(epochs, val_accuracies, label='Val Accuracy', marker='o')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.title('Train and Validation Accuracy')
+    plt.legend()
+    plt.grid(True)
+
+    plt.tight_layout()
+    plt.show()
 
 
 # Evaluation function
@@ -304,7 +341,6 @@ def evaluate_model(model, test_loader, num_classes, top_k):
     # Print test performance
     print("Test Performance:")
     print_metrics("test", test_metrics, top_k)
-    print('**************')
 
     return test_metrics
 
@@ -345,6 +381,10 @@ if __name__ == '__main__':
     test_metrics = evaluate_model(model, test_loader, config['num_classes'], config['top_k'])
 
     # Print final metrics
-    print("Final Training Metrics:", train_metrics)
-    print("Final Validation Metrics:", val_metrics)
-    print("Final Test Metrics:", test_metrics)
+    print("Final Training Metrics:", {k: round(v, 3) for k, v in train_metrics.items()})
+    print("Final Validation Metrics:", {k: round(v, 3) for k, v in val_metrics.items()})
+    print("Final Test Metrics:", {k: round(v, 3) for k, v in test_metrics.items()})
+
+
+    # Plot metrics from history file
+    plot_metrics(config['history_file'])
