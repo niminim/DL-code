@@ -16,7 +16,7 @@ matplotlib.use('Qt5Agg')  # or 'Qt5Agg' depending on your system
 config = {
     'batch_size': 100,
     'learning_rate': 0.001,
-    'num_epochs': 10,
+    'num_epochs': 20,
     'data_dir': '/home/nim/data',
     'num_classes': 10,
     'val_split': 0.2,
@@ -256,6 +256,7 @@ def evaluate(model, loader, criterion, num_classes, top_k):
 # Training function
 def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs, num_classes, top_k, history_file):
     for epoch in range(num_epochs):
+        print('LR: ', optimizer.param_groups[0]['lr'])
         model.train()
         running_loss = 0.0
 
@@ -380,11 +381,47 @@ if __name__ == '__main__':
     # Evaluate the model
     test_metrics = evaluate_model(model, test_loader, config['num_classes'], config['top_k'])
 
-    # Print final metrics
-    print("Final Training Metrics:", {k: round(v, 3) for k, v in train_metrics.items()})
-    print("Final Validation Metrics:", {k: round(v, 3) for k, v in val_metrics.items()})
-    print("Final Test Metrics:", {k: round(v, 3) for k, v in test_metrics.items()})
-
-
     # Plot metrics from history file
     plot_metrics(config['history_file'])
+
+
+def save_best_model(model, epoch, val_accuracy, best_val_accuracy, save_dir):
+    """
+    Save the best model based on validation accuracy. Deletes the previous best model.
+
+    Parameters:
+    model (torch.nn.Module): The model to be saved.
+    epoch (int): The current epoch.
+    val_accuracy (float): The validation accuracy for the current epoch.
+    best_val_accuracy (float): The best validation accuracy observed so far.
+    save_dir (str): Directory where the model will be saved.
+
+    Returns:
+    str: The path of the saved model.
+    float: Updated best validation accuracy.
+    """
+    # Create save directory if it doesn't exist
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    # Save the model if the current validation accuracy is the best seen so far
+    if val_accuracy > best_val_accuracy:
+        # Delete previous best model
+        for filename in os.listdir(save_dir):
+            if filename.startswith("best_model_"):
+                os.remove(os.path.join(save_dir, filename))
+
+        # Define the model filename with epoch and validation accuracy
+        model_filename = f"model_epoch{epoch}_val_acc{val_accuracy:.3f}.pth"
+        model_path = os.path.join(save_dir, model_filename)
+
+        # Save the model state dictionary
+        torch.save(model.state_dict(), model_path)
+        print(f"Saved new best model: {model_filename}")
+
+        # Update the best validation accuracy
+        best_val_accuracy = val_accuracy
+
+        return model_path, best_val_accuracy
+    else:
+        return None, best_val_accuracy
