@@ -12,11 +12,12 @@ sys.path.append(project_root)
 
 
 from Classification.CIFAR10_example.data.datasets import load_data
-from Classification.CIFAR10_example.models.cnn import CNN
-from Classification.CIFAR10_example.train_utils.training import train_model, evaluate_model
+from Classification.CIFAR10_example.models.build_model import *
+from Classification.CIFAR10_example.train_utils.training import train_model
 from Classification.CIFAR10_example.configs.config import config
-from Classification.CIFAR10_example.utils.plots import plot_metrics
+from Classification.CIFAR10_example.utils.plots import plot_metrics, plot_multiclass_roc
 from Classification.CIFAR10_example.train_utils.training import evaluate, print_metrics
+from Classification.CIFAR10_example.train_utils.metrics import calculate_cm_cr
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -34,9 +35,13 @@ if __name__ == '__main__':
     )
 
     # Initialize model, loss function, and optimizer
-    model = CNN(num_classes=config['num_classes']).to(device)
+    model = get_model(config, device)
+    # CNN(num_classes=config['num_classes']).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config['learning_rate'])
+
+    if os.path.exists(config['history_file']):
+        os.remove(config['history_file'])
 
     # Train the model
     train_metrics, val_metrics = train_model(model,
@@ -47,8 +52,10 @@ if __name__ == '__main__':
                 config)
 
     # Evaluate the model
-    test_metrics = evaluate(model, test_loader, nn.CrossEntropyLoss(), config)
+    test_scores, test_labels, test_preds, test_metrics = evaluate(model, test_loader, nn.CrossEntropyLoss(), config)
     print_metrics(phase='Test', metrics=test_metrics, top_k=config['top_k'])
 
     # Plot metrics from history file
     plot_metrics(config['history_file'])
+    plot_multiclass_roc(test_scores, test_labels, config['num_classes'])
+    calculate_cm_cr(test_labels, test_preds)
