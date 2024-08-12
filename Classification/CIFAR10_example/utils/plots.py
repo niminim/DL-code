@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
 from sklearn.preprocessing import label_binarize
+import json
 
 import matplotlib
 matplotlib.use('Qt5Agg')  # or 'Qt5Agg' depending on your system
 
-import json
 
 def plot_train_val_loss_acc(history_file):
     with open(history_file, 'r') as file:

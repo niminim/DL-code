@@ -2,7 +2,7 @@ config = {
     'model_name': 'cnn',
     'batch_size': 256,
     'learning_rate': 0.001,
-    'num_epochs': 12,
+    'num_epochs': 8,
     'data_dir': '/home/nim/data',
     'num_classes': 10,
     'val_split': 0.2,
