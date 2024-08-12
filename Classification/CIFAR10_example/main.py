@@ -15,7 +15,7 @@ from Classification.CIFAR10_example.data.datasets import load_data
 from Classification.CIFAR10_example.models.build_model import *
 from Classification.CIFAR10_example.train_utils.training import train_model
 from Classification.CIFAR10_example.configs.config import config
-from Classification.CIFAR10_example.utils.plots import plot_metrics, plot_multiclass_roc
+from Classification.CIFAR10_example.utils.plots import plot_train_val_loss_acc, plot_multiclass_roc
 from Classification.CIFAR10_example.train_utils.training import evaluate, print_metrics
 from Classification.CIFAR10_example.train_utils.metrics import calculate_cm_cr
 import torch
@@ -28,7 +28,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 if __name__ == '__main__':
     # Load data
-    train_loader, val_loader, test_loader = load_data(
+    train_loader, val_loader, test_loader, class2index = load_data(
         config['data_dir'],
         config['batch_size'],
         config['val_split']
@@ -51,11 +51,13 @@ if __name__ == '__main__':
                 optimizer,
                 config)
 
-    # Evaluate the model
+    # Evaluate the model (need to use best val model and not the last)
     test_scores, test_labels, test_preds, test_metrics = evaluate(model, test_loader, nn.CrossEntropyLoss(), config)
     print_metrics(phase='Test', metrics=test_metrics, top_k=config['top_k'])
 
     # Plot metrics from history file
-    plot_metrics(config['history_file'])
-    plot_multiclass_roc(test_scores, test_labels, config['num_classes'])
-    calculate_cm_cr(test_labels, test_preds)
+    plot_train_val_loss_acc(config['history_file'])
+    # Calc Class-A/ucm and plot Class-ROC Curve
+    plot_multiclass_roc(test_scores, test_labels, config['num_classes'], class2index)
+    # Calc and print confusion-matrix and classification-report
+    calculate_cm_cr(test_labels, test_preds, class2index)

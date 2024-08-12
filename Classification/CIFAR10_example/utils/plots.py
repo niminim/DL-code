@@ -7,7 +7,7 @@ matplotlib.use('Qt5Agg')  # or 'Qt5Agg' depending on your system
 
 import json
 
-def plot_metrics(history_file):
+def plot_train_val_loss_acc(history_file):
     with open(history_file, 'r') as file:
         history = json.load(file)
 
@@ -43,7 +43,7 @@ def plot_metrics(history_file):
     plt.show()
 
 
-def plot_multiclass_roc(scores, labels, num_classes):
+def plot_multiclass_roc(scores, labels, num_classes, class2index):
     """
     Plots ROC curves and computes AUC for a multiclass classification problem.
 
@@ -55,6 +55,10 @@ def plot_multiclass_roc(scores, labels, num_classes):
     Returns:
     None
     """
+
+    # Create a new dictionary by swapping keys and values
+    index2class = {value: key for key, value in class2index.items()}
+
     # Reshape val_labels to be a 1D tensor
     labels = labels.view(-1)
 
@@ -72,7 +76,7 @@ def plot_multiclass_roc(scores, labels, num_classes):
 
     # Example: Printing the AUC values
     for i in range(num_classes):
-        print(f'Class {i} AUC: {roc_auc[i]:.2f}')
+        print(f'Class {index2class[i]} AUC: {roc_auc[i]:.2f}')
 
 
     # Plot all ROC curves
@@ -80,7 +84,7 @@ def plot_multiclass_roc(scores, labels, num_classes):
     print('Plot all Class-ROC curves:')
     plt.figure()
     for i in range(num_classes):
-        plt.plot(fpr[i], tpr[i], lw=2, label=f'Class {i} (AUC = {roc_auc[i]:.2f})')
+        plt.plot(fpr[i], tpr[i], lw=2, label=f'Class {index2class[i]} (AUC = {roc_auc[i]:.2f})')
 
     plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')  # Diagonal line
     plt.xlim([0.0, 1.0])

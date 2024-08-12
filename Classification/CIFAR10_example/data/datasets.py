@@ -23,6 +23,7 @@ def load_data(data_dir, batch_size, val_split):
     transform_train, transform_test = get_transforms()
 
     dataset = torchvision.datasets.CIFAR10(root=data_dir, train=True, transform=transform_train, download=True)
+    class2index = dataset.class_to_idx
 
     val_size = int(val_split * len(dataset))
     train_size = len(dataset) - val_size
@@ -34,4 +35,4 @@ def load_data(data_dir, batch_size, val_split):
     test_dataset = torchvision.datasets.CIFAR10(root=data_dir, train=False, transform=transform_test, download=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
 
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader, test_loader, class2index

@@ -1,6 +1,10 @@
 import torch
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score, confusion_matrix, classification_report
 import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 
 # def initialize_metrics():
 #     return {
@@ -64,15 +68,33 @@ def compute_auc(scores, labels, num_classes):
     auc /= num_classes
     return auc
 
-def calculate_cm_cr(labels, preds):
+def calculate_cm_cr(labels, preds, class2index):
+
+    # Create a new dictionary by swapping keys and values
+    index2class = {value: key for key, value in class2index.items()}
+
     cm = confusion_matrix(labels.cpu(), preds.cpu())
+
+    # Convert confusion matrix to DataFrame for better readability
+    cm_df = pd.DataFrame(cm, index=[index2class[i] for i in range(len(cm))],
+                         columns=[index2class[i] for i in range(len(cm))])
+
+    # Plot confusion matrix
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm_df, annot=True, fmt='d', cmap='Blues')
+    plt.title('Confusion Matrix')
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted Label')
+    plt.show()
+
+
     cr = classification_report(preds.cpu(), labels.cpu())
     print('')
-    print('cm')
+    print('cm_df')
     print(cm)
     print('cr')
     print(cr)
-    return cm, cr
+    return cm_df, cr
 
 
 # def calculate_average_metrics(metrics, loss):
