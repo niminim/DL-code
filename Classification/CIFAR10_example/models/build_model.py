@@ -8,26 +8,26 @@ def get_model(config, device):
     num_classes = config['num_classes']
     in_channels = 3
 
-    if model_name == 'efficientnet_b1':
-        model = models.efficientnet_b1(weights='IMAGENET1K_V1', progress=True)
-        model.features[0][0] = nn.Conv2d(in_channels=in_channels, out_channels=32, kernel_size=(3, 3), stride=(2, 2),
+    if model_name == 'mobilenetv3':
+        model = models.mobilenet_v3_small(weights='IMAGENET1K_V1')
+        model.features[0][0] = nn.Conv2d(in_channels=in_channels, out_channels=16, kernel_size=(3, 3), stride=(2, 2),
                                          padding=(1, 1), bias=False)
-        model.classifier[1] = nn.Linear(1280, num_classes)
+        model.classifier[3] = nn.Linear(1024, num_classes)
+    elif model_name == 'mixnet_s':
+        model = timm.create_model('mixnet_s', pretrained=True)
+        model.conv_stem = nn.Conv2d(in_channels=in_channels, out_channels=16, kernel_size=(3, 3), stride=(2, 2),
+                                    padding=(1, 1), bias=False)
+        model.classifier = nn.Linear(1536, num_classes)
     elif model_name == 'efficientnet_b0':
         model = timm.create_model('efficientnet_b0', pretrained=True)
         model.conv_stem = nn.Conv2d(in_channels=in_channels, out_channels=32, kernel_size=(3, 3), stride=(2, 2),
                                     padding=(1, 1), bias=False)
         model.classifier = nn.Linear(1280, num_classes)
-    elif model_name == 'mobilenetv3':
-        model = models.mobilenet_v3_small(weights='IMAGENET1K_V1')
-        model.features[0][0] = nn.Conv2d(in_channels=in_channels, out_channels=16, kernel_size=(3, 3), stride=(2, 2),
+    if model_name == 'efficientnet_b1':
+        model = models.efficientnet_b1(weights='IMAGENET1K_V1', progress=True)
+        model.features[0][0] = nn.Conv2d(in_channels=in_channels, out_channels=32, kernel_size=(3, 3), stride=(2, 2),
                                          padding=(1, 1), bias=False)
-        model.classifier[3] = nn.Linear(1024, num_classes)
-    elif model_name == 'mixnet':
-        model = timm.create_model('mixnet_s', pretrained=True)
-        model.conv_stem = nn.Conv2d(in_channels=in_channels, out_channels=16, kernel_size=(3, 3), stride=(2, 2),
-                                    padding=(1, 1), bias=False)
-        model.classifier = nn.Linear(1536, num_classes)
+        model.classifier[1] = nn.Linear(1280, num_classes)
     elif model_name == 'cnn':
         model = CNN(num_classes)
 

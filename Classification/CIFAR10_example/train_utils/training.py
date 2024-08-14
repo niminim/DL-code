@@ -1,7 +1,7 @@
+import json
 import torch
 import torch.nn as nn
-import os
-import json
+
 from Classification.CIFAR10_example.train_utils.metrics import *
 from Classification.CIFAR10_example.train_utils.general_utils import *
 
@@ -16,6 +16,10 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, config):
     num_epochs = config['num_epochs']
     models_dir = config['models_dir']
     history_file = config['history_file']
+    use_amp = config['use_amp']
+
+    # Initialize GradScaler if using AMP
+    scaler = torch.amp.GradScaler() if use_amp else None
 
     best_val_acc = 0.0
     # num_epochs = 2
@@ -31,19 +35,36 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, config):
 
         # Training phase
         for images, labels in train_loader:
+            optimizer.zero_grad()
             images, labels = images.to(device), labels.to(device)
 
-            # Forward pass
-            outputs = model(images) # (cuda, requires_grad)
-            loss = criterion(outputs, labels)  # (cuda, requires_grad)                 
+            if use_amp:
+                with torch.autocast(device_type=device.type, enabled=True):
+                    outputs = model(images)
+                    loss = criterion(outputs, labels)
 
-            # Backward and optimize
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+                # Scales loss.  Calls backward() on scaled loss to create scaled gradients.
+                # Backward passes under autocast are not recommended.
+                # Backward ops run in the same dtype autocast chose for corresponding forward ops.
+                scaler.scale(loss).backward()
+
+                # scaler.step() first unscales the gradients of the optimizer's assigned params.
+                # If these gradients do not contain infs or NaNs, optimizer.step() is then called, otherwise, optimizer.step() is skipped.
+                scaler.step(optimizer)
+
+                # Updates the scale for next iteration
+                scaler.update()
+            else:
+                # Forward pass
+                outputs = model(images)  # (cuda, requires_grad)
+                loss = criterion(outputs, labels)  # (cuda, requires_grad)
+
+                # Backward and optimize
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
             running_loss += loss.item()
-
-
             scores = torch.nn.functional.softmax(outputs, dim=1) # (cuda, requires_grad)
             _, preds = torch.max(outputs.data, 1) #  basically it's - descending scores, preds, but we don't want to overide the scores  (preds not on cuda)
 
@@ -73,10 +94,10 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, config):
         
     return train_metrics, val_metrics
 
+
 def evaluate(model, loader, criterion, config):
 
-    top_k = config['top_k']
-    num_classes = config['num_classes']
+    use_amp = config['use_amp']
 
     val_scores = torch.empty(0, config['num_classes'])
     val_preds = torch.empty(0, 1)
@@ -87,8 +108,11 @@ def evaluate(model, loader, criterion, config):
     with torch.no_grad():
         for images, labels in loader:
             images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
-            loss = criterion(outputs, labels)
+
+            with torch.autocast(device_type=device.type, enabled=use_amp):
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+
             val_loss += loss.item()
 
             scores = torch.nn.functional.softmax(outputs, dim=1)

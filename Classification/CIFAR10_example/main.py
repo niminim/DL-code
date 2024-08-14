@@ -10,7 +10,6 @@ import sys
 project_root = os.path.abspath("/home/nim/venv/DL-code")
 sys.path.append(project_root)
 
-
 from Classification.CIFAR10_example.data.datasets import load_data
 from Classification.CIFAR10_example.models.build_model import *
 from Classification.CIFAR10_example.train_utils.training import train_model
@@ -26,6 +25,7 @@ import torch.nn as nn
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f"Device: {device}")
 
 if __name__ == '__main__':
     # Load data
