@@ -15,12 +15,13 @@ from Classification.CIFAR10_example.data.datasets import load_data
 from Classification.CIFAR10_example.models.build_model import *
 from Classification.CIFAR10_example.train_utils.training import train_model
 from Classification.CIFAR10_example.configs.config import config
-from Classification.CIFAR10_example.utils.plots import plot_train_val_loss_acc, plot_multiclass_roc
+from Classification.CIFAR10_example.utils.plots import plot_train_val_loss_acc, plot_multiclass_roc, calc_and_plot_cm_cr
 from Classification.CIFAR10_example.train_utils.training import evaluate, print_metrics
-from Classification.CIFAR10_example.train_utils.metrics import calculate_cm_cr
+
 import torch
 import torch.optim as optim
 import torch.nn as nn
+# torch.set_float32_matmul_precision('high') # could harm results
 
 
 # Device configuration
@@ -36,7 +37,7 @@ if __name__ == '__main__':
 
     # Initialize model, loss function, and optimizer
     model = get_model(config, device)
-    # CNN(num_classes=config['num_classes']).to(device)
+    model = torch.compile(model)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config['learning_rate'])
 
@@ -60,4 +61,4 @@ if __name__ == '__main__':
     # Calc Class-A/ucm and plot Class-ROC Curve
     plot_multiclass_roc(test_scores, test_labels, config['num_classes'], class2index)
     # Calc and print confusion-matrix and classification-report
-    calculate_cm_cr(test_labels, test_preds, class2index)
+    calc_and_plot_cm_cr(test_labels, test_preds, class2index)
