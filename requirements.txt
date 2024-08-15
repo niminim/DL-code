@@ -45,3 +45,5 @@ tqdm==4.66.5
 easydict==1.12
 PyQt5==5.15.10
 
+neptune==1.10.4
+

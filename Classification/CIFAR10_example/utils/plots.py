@@ -1,3 +1,5 @@
+import os.path
+
 from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score, confusion_matrix, classification_report
 from sklearn.preprocessing import label_binarize
@@ -47,7 +49,7 @@ def plot_train_val_loss_acc(history_file):
     plt.show()
 
 
-def plot_multiclass_roc(scores, labels, num_classes, class2index):
+def plot_multiclass_roc(scores, labels, class2index,config, run):
     """
     Plots ROC curves and computes AUC for a multiclass classification problem.
 
@@ -59,6 +61,10 @@ def plot_multiclass_roc(scores, labels, num_classes, class2index):
     Returns:
     None
     """
+
+    num_classes = config['num_classes']
+    os.makedirs(config['plots_dir'],exist_ok=True)
+    roc_file_path = os.path.join(config['plots_dir'],'roc_curve.png')
 
     # Create a new dictionary by swapping keys and values
     index2class = {value: key for key, value in class2index.items()}
@@ -98,11 +104,18 @@ def plot_multiclass_roc(scores, labels, num_classes, class2index):
     plt.ylabel('True Positive Rate')
     plt.title('Receiver Operating Characteristic for Multiclass')
     plt.legend(loc="lower right")
+    plt.savefig(roc_file_path)
+    run["test_reports/roc_curve"].upload(roc_file_path)
     plt.show()
 
 
 
-def calc_and_plot_cm_cr(labels, preds, class2index):
+def calc_and_plot_cm_cr(labels, preds, class2index, config, run):
+
+    os.makedirs(config['plots_dir'],exist_ok=True)
+    cm_file_path = os.path.join(config['plots_dir'],'confusion_matrix.png')
+    cr_file_path = os.path.join(config['plots_dir'],'classification_report.png')
+
 
     # Create a new dictionary by swapping keys and values
     index2class = {value: key for key, value in class2index.items()}
@@ -120,6 +133,9 @@ def calc_and_plot_cm_cr(labels, preds, class2index):
     plt.title('Confusion Matrix')
     plt.ylabel('True Label')
     plt.xlabel('Predicted Label')
+    plt.savefig(cm_file_path)
+    run["test_reports/confusion_matrix"].upload(cm_file_path)
+
     plt.show()
 
 
@@ -134,6 +150,8 @@ def calc_and_plot_cm_cr(labels, preds, class2index):
     plt.title('Classification Report')
     plt.xlabel('Metrics')
     plt.ylabel('Classes')
+    plt.savefig(cr_file_path)
+    run["test_reports/classification_report"].upload(cr_file_path)
     plt.show()
 
     print('')

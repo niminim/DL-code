@@ -4,12 +4,13 @@ import torch.nn as nn
 
 from Classification.CIFAR10_example.train_utils.metrics import *
 from Classification.CIFAR10_example.train_utils.general_utils import *
+from Classification.CIFAR10_example.utils.neptune_utils import update_neptune_run, log_neptune_data
 
 
 # Define the device globally
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def train_model(model, train_loader, val_loader, criterion, optimizer, config):
+def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, config, run):
 
     top_k = config['top_k']
     num_classes = config['num_classes']
@@ -77,6 +78,8 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, config):
             total += labels.size(0)
             correct += (preds == labels.cpu()).sum().item()
 
+        scheduler.step()
+
         # Calculate metrics
         train_metrics = compute_metrics(train_preds, train_scores, train_labels, running_loss, config)
         val_scores, val_labels, val_preds, val_metrics = evaluate(model, val_loader, nn.CrossEntropyLoss(), config)
@@ -88,6 +91,10 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, config):
 
         # Update and save training history
         update_history(history_file, epoch, train_metrics, val_metrics)
+
+        # Update neptune logging
+        update_neptune_run(run, train_metrics, val_metrics)
+        log_neptune_data(run, train_metrics, val_metrics, optimizer)
 
         # Save the best model based on validation accuracy
         _, best_val_acc = save_best_model(model, epoch, val_metrics['acc'], best_val_acc, models_dir, config['model_name'])
