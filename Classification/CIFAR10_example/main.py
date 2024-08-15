@@ -31,8 +31,11 @@ print(f"Device: {device}")
 
 if __name__ == '__main__':
 
-    run = get_neptune_run()
-    add_configs_to_neptune(run, config)
+    if config['save_to_neptune']:
+        run = get_neptune_run()
+        add_configs_to_neptune(run, config)
+    else:
+        run = None
 
     # Load data
     train_loader, val_loader, test_loader, class2index = load_data(
@@ -52,7 +55,7 @@ if __name__ == '__main__':
         os.remove(config['history_file'])
 
     # Train the model
-    train_metrics, val_metrics = train_model(model,
+    train_data, val_data = train_model(model,
                 train_loader,
                 val_loader,
                 criterion,
@@ -62,15 +65,16 @@ if __name__ == '__main__':
                 run)
 
     # Evaluate the model (need to use best val model and not the last)
-    test_scores, test_labels, test_preds, test_metrics = evaluate(model, test_loader, nn.CrossEntropyLoss(), config)
-    print_metrics(phase='Test', metrics=test_metrics, top_k=config['top_k'])
+    test_data = evaluate(model, test_loader, nn.CrossEntropyLoss(), config)
+    print_metrics(phase='Test', metrics=test_data['metrics'], top_k=config['top_k'])
 
     # Plot metrics from history file
     plot_train_val_loss_acc(config['history_file'])
     # Calc Class-A/ucm and plot Class-ROC Curve
-    plot_multiclass_roc(test_scores, test_labels, class2index, config, run)
+    plot_multiclass_roc(test_data['scores'], test_data['labels'], class2index, config, run)
     # Calc and print confusion-matrix and classification-report
-    calc_and_plot_cm_cr(test_labels, test_preds, class2index, config, run)
+    calc_and_plot_cm_cr(test_data['labels'], test_data['preds'], class2index, config, run)
 
-    run.stop()
+    if config['save_to_neptune']:
+        run.stop()
 

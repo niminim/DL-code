@@ -105,7 +105,8 @@ def plot_multiclass_roc(scores, labels, class2index,config, run):
     plt.title('Receiver Operating Characteristic for Multiclass')
     plt.legend(loc="lower right")
     plt.savefig(roc_file_path)
-    run["test_reports/roc_curve"].upload(roc_file_path)
+    if config['save_to_neptune']:
+        run["test_reports/roc_curve"].upload(roc_file_path)
     plt.show()
 
 
@@ -134,8 +135,8 @@ def calc_and_plot_cm_cr(labels, preds, class2index, config, run):
     plt.ylabel('True Label')
     plt.xlabel('Predicted Label')
     plt.savefig(cm_file_path)
-    run["test_reports/confusion_matrix"].upload(cm_file_path)
-
+    if config['save_to_neptune']:
+        run["test_reports/confusion_matrix"].upload(cm_file_path)
     plt.show()
 
 
@@ -151,7 +152,8 @@ def calc_and_plot_cm_cr(labels, preds, class2index, config, run):
     plt.xlabel('Metrics')
     plt.ylabel('Classes')
     plt.savefig(cr_file_path)
-    run["test_reports/classification_report"].upload(cr_file_path)
+    if config['save_to_neptune']:
+        run["test_reports/classification_report"].upload(cr_file_path)
     plt.show()
 
     print('')

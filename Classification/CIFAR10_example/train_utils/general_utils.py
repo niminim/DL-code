@@ -1,5 +1,7 @@
 import os
+import json
 import torch
+
 
 def save_best_model(model, epoch, val_acc, best_val_acc, save_dir, model_name):
     """
@@ -55,3 +57,21 @@ def delete_all_files(directory):
                 # If an error occurs (e.g., file is a directory or access is denied),
                 # print an error message
                 print(f"Couldn't delete file: {file_path}. Reason: {e}")
+
+
+def update_history(history_file, epoch, train_metrics, val_metrics):
+    epoch_data = {
+        'epoch': epoch + 1,
+        'train': {k: round(v, 4) for k, v in train_metrics.items()},
+        'val': {k: round(v, 4) for k, v in val_metrics.items()}
+    }
+
+    history = []
+    if os.path.exists(history_file):
+        with open(history_file, 'r') as file:
+            history = json.load(file)
+
+    history.append(epoch_data)
+
+    with open(history_file, 'w') as file:
+        json.dump(history, file, indent=4)

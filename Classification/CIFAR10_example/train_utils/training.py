@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from Classification.CIFAR10_example.train_utils.metrics import *
 from Classification.CIFAR10_example.train_utils.general_utils import *
-from Classification.CIFAR10_example.utils.neptune_utils import update_neptune_run, log_neptune_data
+from Classification.CIFAR10_example.utils.neptune_utils import log_neptune_data
 
 
 # Define the device globally
@@ -19,6 +19,8 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
     history_file = config['history_file']
     use_amp = config['use_amp']
 
+    train_data = {}
+
     # Initialize GradScaler if using AMP
     scaler = torch.amp.GradScaler() if use_amp else None
 
@@ -29,10 +31,9 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
         print('LR: ', optimizer.param_groups[0]['lr'])
         model.train()
         running_loss = 0.0
-        correct, total = 0, 0
-        train_scores = torch.empty(0, num_classes)
-        train_preds = torch.empty(0, 1)
-        train_labels = torch.empty(0, 1)
+        train_data['scores'] = torch.empty(0, num_classes)
+        train_data['preds'] = torch.empty(0, 1)
+        train_data['labels'] = torch.empty(0, 1)
 
         # Training phase
         for images, labels in train_loader:
@@ -70,45 +71,48 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
             _, preds = torch.max(outputs.data, 1) #  basically it's - descending scores, preds, but we don't want to overide the scores  (preds not on cuda)
 
             labels = torch.unsqueeze(labels.cpu(), dim=1) # reshape
-            train_labels = torch.cat((train_labels, labels), dim=0)
+            train_data['labels'] = torch.cat((train_data['labels'], labels), dim=0)
             preds = torch.unsqueeze(preds, dim=1).cpu() # reshape
-            train_preds = torch.cat((train_preds, preds), dim=0)
-            train_scores = torch.cat((train_scores, scores.detach().cpu()), dim=0)
-
-            total += labels.size(0)
-            correct += (preds == labels.cpu()).sum().item()
+            train_data['preds'] = torch.cat((train_data['preds'], preds), dim=0)
+            train_data['scores'] = torch.cat((train_data['scores'], scores.detach().cpu()), dim=0)
 
         scheduler.step()
 
         # Calculate metrics
-        train_metrics = compute_metrics(train_preds, train_scores, train_labels, running_loss, config)
-        val_scores, val_labels, val_preds, val_metrics = evaluate(model, val_loader, nn.CrossEntropyLoss(), config)
-
+        train_data['metrics'] = compute_metrics(train_data, running_loss, config)
+        val_data = evaluate(model, val_loader, nn.CrossEntropyLoss(), config)
+        print(f"train_data.keys(): {train_data.keys()}")
+        print(f"val_data.keys(): {val_data.keys()}")
+        print(f"train_data['labels'].shape: {train_data['labels'].shape}")
+        print(f"val_data['labels'].shape: {val_data['labels'].shape}")
 
         # Print metrics at the end of each epoch
-        print_metrics(phase='Train', metrics=train_metrics, top_k=top_k)
-        print_metrics(phase='Val', metrics=val_metrics, top_k=top_k)
+        print_metrics(phase='Train', metrics=train_data['metrics'], top_k=top_k)
+        print_metrics(phase='Val', metrics=val_data['metrics'], top_k=top_k)
 
         # Update and save training history
-        update_history(history_file, epoch, train_metrics, val_metrics)
+        update_history(history_file, epoch, train_data['metrics'], val_data['metrics'])
+
 
         # Update neptune logging
-        update_neptune_run(run, train_metrics, val_metrics)
-        log_neptune_data(run, train_metrics, val_metrics, optimizer)
+        if config['save_to_neptune']:
+            print("save to neptune")
+            log_neptune_data(run, train_data['metrics'], val_data['metrics'], optimizer)
 
         # Save the best model based on validation accuracy
-        _, best_val_acc = save_best_model(model, epoch, val_metrics['acc'], best_val_acc, models_dir, config['model_name'])
+        _, best_val_acc = save_best_model(model, epoch, val_data['metrics']['acc'], best_val_acc, models_dir, config['model_name'])
         
-    return train_metrics, val_metrics
+    return train_data, val_data
 
 
 def evaluate(model, loader, criterion, config):
 
     use_amp = config['use_amp']
 
-    val_scores = torch.empty(0, config['num_classes'])
-    val_preds = torch.empty(0, 1)
-    val_labels = torch.empty(0, 1)
+    val_data = {}
+    val_data['scores'] = torch.empty(0, config['num_classes'])
+    val_data['preds'] = torch.empty(0, 1)
+    val_data['labels'] = torch.empty(0, 1)
 
     val_loss = 0.0
     model.eval()
@@ -126,33 +130,18 @@ def evaluate(model, loader, criterion, config):
             _, preds = torch.max(outputs.data, 1) #  basically it's - scores, preds, but we don't want to overide the scores
 
             labels = torch.unsqueeze(labels.cpu(), dim=1) # reshape
-            val_labels = torch.cat((val_labels, labels), dim=0)
+            val_data['labels'] = torch.cat((val_data['labels'], labels), dim=0)
             preds = torch.unsqueeze(preds, dim=1).cpu() # reshape
-            val_preds = torch.cat((val_preds, preds), dim=0)
-            val_scores = torch.cat((val_scores, scores.detach().cpu()), dim=0)
+            val_data['preds'] = torch.cat((val_data['preds'], preds), dim=0)
+            val_data['scores'] = torch.cat((val_data['scores'], scores.detach().cpu()), dim=0)
 
 
-    metrics = compute_metrics(val_preds, val_scores, val_labels, val_loss, config)
+    val_data['metrics'] = compute_metrics(val_data, val_loss, config)
 
-    return val_scores, val_labels, val_preds, metrics
+    return val_data
 
 
-def update_history(history_file, epoch, train_metrics, val_metrics):
-    epoch_data = {
-        'epoch': epoch + 1,
-        'train': {k: round(v, 4) for k, v in train_metrics.items()},
-        'val': {k: round(v, 4) for k, v in val_metrics.items()}
-    }
 
-    history = []
-    if os.path.exists(history_file):
-        with open(history_file, 'r') as file:
-            history = json.load(file)
-
-    history.append(epoch_data)
-
-    with open(history_file, 'w') as file:
-        json.dump(history, file, indent=4)
 
 
 

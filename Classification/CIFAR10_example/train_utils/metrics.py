@@ -15,7 +15,11 @@ import numpy as np
 #         'loss' : 10000.0
 #     }
 
-def compute_metrics(preds, scores, labels, loss, config):
+def compute_metrics(phase_data, loss, config):
+
+    preds = phase_data['preds']
+    scores = phase_data['scores']
+    labels = phase_data['labels']
 
     acc = accuracy_score(labels.cpu(), preds)
     confusion = confusion_matrix(labels.cpu(), preds.cpu())
