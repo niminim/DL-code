@@ -11,7 +11,7 @@ params = {
     "learning_rate": 0.001,
     "batch_size": 32,
     "epochs": 5,
-    "model_size": 1 # 1 - resnet18, 2 - resnet50, 3 - resnet101, 4 - resnet 152
+    "model_size": 3 # 1 - resnet18, 2 - resnet50, 3 - resnet101, 4 - resnet 152
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -41,7 +41,7 @@ dataset = TensorDataset(random_images, random_labels)
 train_loader = DataLoader(dataset, batch_size=params["batch_size"], shuffle=True)
 val_loader = DataLoader(dataset, batch_size=params["batch_size"], shuffle=False)
 
-model = get_model(params["model_size"])
+model = get_model(params["model_size"], device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=params["learning_rate"])
 
