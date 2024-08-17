@@ -4,7 +4,7 @@ config = {
     'learning_rate': 0.001,
     'num_epochs': 10,
     'use_amp': False,
-    'data_dir': '/home/nim/data',
+    'data_dir': '/home/nim/cifar10_project/data',
     'num_classes': 10,
     'val_split': 0.2,
     'top_k': 5,

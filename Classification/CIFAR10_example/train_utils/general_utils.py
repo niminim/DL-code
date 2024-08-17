@@ -2,8 +2,10 @@ import os
 import json
 import torch
 
+from Playground.python_ops.python_dictionary import config
 
-def save_best_model(model, epoch, val_acc, best_val_acc, save_dir, model_name):
+
+def save_best_model(model, epoch, val_acc, best_val_acc, config):
     """
     Save the best model based on validation accuracy. Deletes the previous best model.
 
@@ -20,6 +22,8 @@ def save_best_model(model, epoch, val_acc, best_val_acc, save_dir, model_name):
     """
     # Create save directory if it doesn't exist
     os.makedirs(save_dir,exist_ok=True)
+    save_dir = config['models_dir']
+    model_name = config['model_name']
 
     # Save the model if the current validation accuracy is the best seen so far
     if val_acc > best_val_acc:
@@ -44,6 +48,8 @@ def save_best_model(model, epoch, val_acc, best_val_acc, save_dir, model_name):
         return None, best_val_acc
 
 def delete_all_files(directory):
+    # Delete all files in a directory
+
     # Check if the directory exists
     if os.path.exists(directory):
         # Iterate through all files and directories in the specified directory
@@ -60,6 +66,8 @@ def delete_all_files(directory):
 
 
 def update_history(history_file, epoch, train_metrics, val_metrics):
+    # Update train and val metrics for each epoch in the json file
+
     epoch_data = {
         'epoch': epoch + 1,
         'train': {k: round(v, 4) for k, v in train_metrics.items()},

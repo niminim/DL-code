@@ -19,7 +19,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
     history_file = config['history_file']
     use_amp = config['use_amp']
 
-    train_data = {}
+    train_data = {} # initialize train_data dict ['scores', 'preds', 'labels', 'metrics']
 
     # Initialize GradScaler if using AMP
     scaler = torch.amp.GradScaler() if use_amp else None
@@ -100,7 +100,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
             log_neptune_data(run, train_data['metrics'], val_data['metrics'], optimizer)
 
         # Save the best model based on validation accuracy
-        _, best_val_acc = save_best_model(model, epoch, val_data['metrics']['acc'], best_val_acc, models_dir, config['model_name'])
+        _, best_val_acc = save_best_model(model, epoch, val_data['metrics']['acc'], best_val_acc, config)
         
     return train_data, val_data
 
@@ -109,7 +109,7 @@ def evaluate(model, loader, criterion, config):
 
     use_amp = config['use_amp']
 
-    val_data = {}
+    val_data = {} # initialize phase_data dict ['scores', 'preds', 'labels', 'metrics']
     val_data['scores'] = torch.empty(0, config['num_classes'])
     val_data['preds'] = torch.empty(0, 1)
     val_data['labels'] = torch.empty(0, 1)
