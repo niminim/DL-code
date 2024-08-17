@@ -11,7 +11,8 @@ params = {
     "learning_rate": 0.001,
     "batch_size": 32,
     "epochs": 5,
-    "model_size": 3 # 1 - resnet18, 2 - resnet50, 3 - resnet101, 4 - resnet 152
+    "model_size": 3, # 1 - resnet18, 2 - resnet50, 3 - resnet101, 4 - resnet 152
+    "use_amp": False
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -46,23 +47,41 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=params["learning_rate"])
 
 
+
 # Function for training one epoch
-def train_one_epoch(model, train_loader, criterion, optimizer, device):
+def train_one_epoch(model, train_loader, criterion, optimizer, scaler, device, use_amp):
     model.train()
     running_train_loss = 0.0
+    forward_timings = []
+    starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
+
     for inputs, targets in train_loader:
+        starter.record()
         inputs, targets = inputs.to(device), targets.to(device)
+        ender.record()
+        # WAIT FOR GPU SYNC
+        torch.cuda.synchronize()
+        cur_time = starter.elapsed_time(ender)
+        forward_timings.append(cur_time)
 
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
-        loss.backward()
-        optimizer.step()
-
+        if use_amp:
+            optimizer.zero_grad()
+            with torch.autocast(device_type=device.type, enabled=True):
+                outputs = model(inputs)
+                loss = criterion(outputs, targets)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            loss.backward()
+            optimizer.step()
         running_train_loss += loss.item()
 
     epoch_train_loss = running_train_loss / len(train_loader)
-    return epoch_train_loss
+    return epoch_train_loss, sum(forward_timings)/1000.0
 
 
 # Function for validation
@@ -81,12 +100,28 @@ def validate(model, val_loader, criterion, device):
 
 
 # Training and Validation Loop with Time Measurement
+scaler = torch.amp.GradScaler() if params['use_amp'] else None
+
 for epoch in range(params["epochs"]):
     start_time = time.time()  # Start the timer at the beginning of the epoch
-
+    timings = []
     # Train for one epoch
-    epoch_train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device)
 
+    # Record the start event for the epoch
+    starter_epoch, ender_epoch = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
+    starter_epoch.record()
+
+    epoch_train_loss, sum_forward_timings= train_one_epoch(model, train_loader, criterion, optimizer, scaler, device, params['use_amp'])
+
+    # Record the end event for the epoch
+    ender_epoch.record()
+    # WAIT FOR GPU SYNC
+    torch.cuda.synchronize()
+    epoch_cur_time = starter_epoch.elapsed_time(ender_epoch)/1000.0
+
+
+    timing = time.time() - start_time  # Calculate elapsed time
+    timings.append(timing)
     # Validate after the epoch
     epoch_val_loss = validate(model, val_loader, criterion, device)
 
@@ -95,3 +130,6 @@ for epoch in range(params["epochs"]):
 
     print(
         f"Epoch [{epoch + 1}/{params['epochs']}], Train Loss: {epoch_train_loss:.4f}, Val Loss: {epoch_val_loss:.4f}, Time: {epoch_time:.2f} seconds")
+    print(f"epoch_cur_time GPU time: {epoch_cur_time:.3f} seconds")
+    print(f"forward GPU time: {sum_forward_timings:.3f} seconds")
+    print('***')
