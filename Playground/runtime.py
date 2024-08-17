@@ -10,12 +10,15 @@ from torchvision.models import resnet18, resnet101, resnet152
 params = {
     "learning_rate": 0.001,
     "batch_size": 32,
-    "epochs": 5
+    "epochs": 5,
     "model_size": 1 # 1 - resnet18, 2 - resnet50, 3 - resnet101, 4 - resnet 152
 }
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 # Model
-def get_model(model_size):
+def get_model(model_size, device):
     if model_size==1:
         model = resnet18(weights=None, num_classes=10)
     elif model_size == 2:
@@ -24,7 +27,6 @@ def get_model(model_size):
         model = resnet101(weights=None, num_classes=10)  # Using ResNet152 without pretrained weights
     elif model_size == 4:
         model = resnet152(weights=None, num_classes=10)  # Using ResNet152 without pretrained weights
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
     return model
 
