@@ -4,19 +4,32 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import time
 from torchvision.models import resnet50, ResNet50_Weights
-from torchvision.models import resnet101, resnet152
-
-from OCT_Classification.data_utils.dataloader_reg_play import num_classes
+from torchvision.models import resnet18, resnet101, resnet152
 
 # Hyperparameters
 params = {
     "learning_rate": 0.001,
-    "batch_size": 32,  # Further reduced batch size due to heavier model
+    "batch_size": 32,
     "epochs": 5
+    "model_size": 1 # 1 - resnet18, 2 - resnet50, 3 - resnet101, 4 - resnet 152
 }
 
+# Model
+def get_model(model_size):
+    if model_size==1:
+        model = resnet18(weights=None, num_classes=10)
+    elif model_size == 2:
+        model = resnet50(weights=None, num_classes=10)
+    elif model_size == 3:
+        model = resnet101(weights=None, num_classes=10)  # Using ResNet152 without pretrained weights
+    elif model_size == 4:
+        model = resnet152(weights=None, num_classes=10)  # Using ResNet152 without pretrained weights
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
+    return model
+
 # Generate random images of size [batch_size, 3, 320, 320] and random labels
-num_samples = 1000  # Number of samples in the dataset
+num_samples = 1000
 image_size = (3, 320, 320)
 random_images = torch.randn(num_samples, *image_size)
 random_labels = torch.randint(0, 10, (num_samples,))  # Assuming 10 classes
@@ -26,24 +39,14 @@ dataset = TensorDataset(random_images, random_labels)
 train_loader = DataLoader(dataset, batch_size=params["batch_size"], shuffle=True)
 val_loader = DataLoader(dataset, batch_size=params["batch_size"], shuffle=False)
 
-# # To load pretrained weights
-# model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
-
-# Or if you don't want pretrained weights
-model = resnet50(weights=None, num_classes=10)
-model = resnet152(weights=None, num_classes=10)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = model.to(device)
-
+model = get_model(params["model_size"])
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=params["learning_rate"])
 
-# Training and Validation Loop with Time Measurement
-for epoch in range(params["epochs"]):
-    model.train()
-    start_time = time.time()  # Start the timer at the beginning of the epoch
 
+# Function for training one epoch
+def train_one_epoch(model, train_loader, criterion, optimizer, device):
+    model.train()
     running_train_loss = 0.0
     for inputs, targets in train_loader:
         inputs, targets = inputs.to(device), targets.to(device)
@@ -57,8 +60,11 @@ for epoch in range(params["epochs"]):
         running_train_loss += loss.item()
 
     epoch_train_loss = running_train_loss / len(train_loader)
+    return epoch_train_loss
 
-    # Validation phase
+
+# Function for validation
+def validate(model, val_loader, criterion, device):
     model.eval()
     running_val_loss = 0.0
     with torch.no_grad():
@@ -69,8 +75,21 @@ for epoch in range(params["epochs"]):
             running_val_loss += loss.item()
 
     epoch_val_loss = running_val_loss / len(val_loader)
+    return epoch_val_loss
+
+
+# Training and Validation Loop with Time Measurement
+for epoch in range(params["epochs"]):
+    start_time = time.time()  # Start the timer at the beginning of the epoch
+
+    # Train for one epoch
+    epoch_train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device)
+
+    # Validate after the epoch
+    epoch_val_loss = validate(model, val_loader, criterion, device)
 
     # End the timer at the end of the epoch
     epoch_time = time.time() - start_time  # Calculate elapsed time
+
     print(
         f"Epoch [{epoch + 1}/{params['epochs']}], Train Loss: {epoch_train_loss:.4f}, Val Loss: {epoch_val_loss:.4f}, Time: {epoch_time:.2f} seconds")
