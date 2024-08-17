@@ -1,15 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision
 from torch.utils.data import DataLoader, TensorDataset
 import time
-from torchvision.models import resnet50
+from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import resnet101, resnet152
+
+from OCT_Classification.data_utils.dataloader_reg_play import num_classes
 
 # Hyperparameters
 params = {
     "learning_rate": 0.001,
-    "batch_size": 16,  # Further reduced batch size due to heavier model
+    "batch_size": 32,  # Further reduced batch size due to heavier model
     "epochs": 5
 }
 
@@ -24,8 +26,12 @@ dataset = TensorDataset(random_images, random_labels)
 train_loader = DataLoader(dataset, batch_size=params["batch_size"], shuffle=True)
 val_loader = DataLoader(dataset, batch_size=params["batch_size"], shuffle=False)
 
-# Use a heavier model, e.g., ResNet50
-model = resnet50(pretrained=False, num_classes=10)  # Using 10 output classes
+# # To load pretrained weights
+# model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
+
+# Or if you don't want pretrained weights
+model = resnet50(weights=None, num_classes=10)
+model = resnet152(weights=None, num_classes=10)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
