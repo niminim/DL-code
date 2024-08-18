@@ -2,9 +2,6 @@ import os
 import json
 import torch
 
-from Playground.python_ops.python_dictionary import config
-
-
 def save_best_model(model, epoch, val_acc, best_val_acc, config):
     """
     Save the best model based on validation accuracy. Deletes the previous best model.
@@ -14,27 +11,27 @@ def save_best_model(model, epoch, val_acc, best_val_acc, config):
     epoch (int): The current epoch.
     val_accuracy (float): The validation accuracy for the current epoch.
     best_val_accuracy (float): The best validation accuracy observed so far.
-    save_dir (str): Directory where the model will be saved.
+    config (dict): Dictionary with train config
 
     Returns:
     str: The path of the saved model.
     float: Updated best validation accuracy.
     """
     # Create save directory if it doesn't exist
-    os.makedirs(save_dir,exist_ok=True)
-    save_dir = config['models_dir']
+    models_dir = config['models_dir']
+    os.makedirs(models_dir,exist_ok=True)
     model_name = config['model_name']
 
     # Save the model if the current validation accuracy is the best seen so far
     if val_acc > best_val_acc:
         # Delete previous best model
-        for filename in os.listdir(save_dir):
+        for filename in os.listdir(models_dir):
             if filename.endswith(".pth"):
-                os.remove(os.path.join(save_dir, filename))
+                os.remove(os.path.join(models_dir, filename))
 
         # Define the model filename with epoch and validation accuracy
         model_filename = f"{model_name}_epoch_{epoch}_valacc_{val_acc:.3f}.pth"
-        model_path = os.path.join(save_dir, model_filename)
+        model_path = os.path.join(models_dir, model_filename)
 
         # Save the model state dictionary
         torch.save(model.state_dict(), model_path)

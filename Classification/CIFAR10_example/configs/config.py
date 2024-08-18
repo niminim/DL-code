@@ -3,7 +3,7 @@ config = {
     'batch_size': 256,
     'learning_rate': 0.001,
     'num_epochs': 10,
-    'use_amp': False,
+    'use_amp': True,
     'data_dir': '/home/nim/cifar10_project/data',
     'num_classes': 10,
     'val_split': 0.2,
@@ -11,5 +11,5 @@ config = {
     'history_file': '/home/nim/cifar10_project/training_history.json',
     'models_dir': '/home/nim/cifar10_project/models',
     'plots_dir': '/home/nim/cifar10_project/plots',
-    'save_to_neptune': True
+    'save_to_neptune': False
 }
