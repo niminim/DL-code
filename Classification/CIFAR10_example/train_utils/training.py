@@ -81,10 +81,6 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
         # Calculate metrics
         train_data['metrics'] = compute_metrics(train_data, running_loss, config)
         val_data = evaluate(model, val_loader, nn.CrossEntropyLoss(), config)
-        print(f"train_data.keys(): {train_data.keys()}")
-        print(f"val_data.keys(): {val_data.keys()}")
-        print(f"train_data['labels'].shape: {train_data['labels'].shape}")
-        print(f"val_data['labels'].shape: {val_data['labels'].shape}")
 
         # Print metrics at the end of each epoch
         print_metrics(phase='Train', metrics=train_data['metrics'], top_k=top_k)

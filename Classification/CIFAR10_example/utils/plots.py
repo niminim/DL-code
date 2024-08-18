@@ -91,8 +91,7 @@ def plot_multiclass_roc(scores, labels, class2index,config, run):
 
 
     # Plot all ROC curves
-    print('')
-    print('Plot all Class-ROC curves:')
+    print('\nPlot all Class-ROC curves')
     plt.figure()
     for i in range(num_classes):
         plt.plot(fpr[i], tpr[i], lw=2, label=f'Class {index2class[i]} (AUC = {roc_auc[i]:.2f})')
@@ -156,11 +155,8 @@ def calc_and_plot_cm_cr(labels, preds, class2index, config, run):
         run["test_reports/classification_report"].upload(cr_file_path)
     plt.show()
 
-    print('')
-    print('cm')
-    print(cm)
-    print('cr')
-    print(cr)
+    print(f'\ncm\n{cm}')
+    print(f'\ncr\n{cr}')
     return cm_df, cr
 
 

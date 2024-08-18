@@ -13,6 +13,8 @@ sys.path.append(project_root)
 from Classification.CIFAR10_example.data.datasets import load_data
 from Classification.CIFAR10_example.models.build_model import *
 from Classification.CIFAR10_example.train_utils.training import train_model, evaluate, print_metrics
+from Classification.CIFAR10_example.train_utils.general_utils import load_best_val_model
+
 from Classification.CIFAR10_example.configs.config import config
 from Classification.CIFAR10_example.utils.plots import plot_train_val_loss_acc, plot_multiclass_roc, calc_and_plot_cm_cr
 from Classification.CIFAR10_example.utils.neptune_utils import get_neptune_run, add_configs_to_neptune
@@ -64,8 +66,9 @@ if __name__ == '__main__':
                 config,
                 run)
 
-    # Evaluate the model (need to use best val model and not the last)
-    test_data = evaluate(model, test_loader, nn.CrossEntropyLoss(), config)
+    # Evaluate the model (using the best val_model accoring to - select_metric)
+    best_val_model = load_best_val_model(model, device, config['models_dir'], select_metric='val_acc')
+    test_data = evaluate(best_val_model, test_loader, nn.CrossEntropyLoss(), config)
     print_metrics(phase='Test', metrics=test_data['metrics'], top_k=config['top_k'])
 
     # Plot metrics from history file
