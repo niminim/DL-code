@@ -101,7 +101,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
     return train_data, val_data
 
 
-def evaluate(model, loader, criterion, config):
+def evaluate(model, phase_loader, criterion, config):
 
     use_amp = config['use_amp']
 
@@ -113,7 +113,7 @@ def evaluate(model, loader, criterion, config):
     val_loss = 0.0
     model.eval()
     with torch.no_grad():
-        for images, labels in loader:
+        for images, labels in phase_loader:
             images, labels = images.to(device), labels.to(device)
 
             with torch.autocast(device_type=device.type, enabled=use_amp):

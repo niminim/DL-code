@@ -92,7 +92,7 @@ def get_best_model_path(directory, metric="val_acc"):
 def load_best_val_model(model, device, models_dir, select_metric='val_acc'):
     # loads best val model the the selected metrics
 
-    assert select_metrics in os.listdir(models_dir)[0]
+    assert select_metric in os.listdir(models_dir)[0]
     best_val_model_path = get_best_model_path(models_dir, metric=select_metric)
     print(f"\nThe best model's filename: {best_val_model_path.split('/')[-1]}")
     model.load_state_dict(torch.load(best_val_model_path))
