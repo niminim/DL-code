@@ -11,5 +11,5 @@ config = {
     'history_file': '/home/nim/cifar10_project/training_history.json',
     'models_dir': '/home/nim/cifar10_project/models',
     'plots_dir': '/home/nim/cifar10_project/plots',
-    'save_to_neptune': True
+    'save_to_neptune': False
 }
