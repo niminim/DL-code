@@ -26,6 +26,7 @@ def fetch_html(url):
 
 # Function to parse the table data from HTML content
 def parse_table_data(html_content):
+    # parse the data table
     soup = BeautifulSoup(html_content, 'html.parser')
 
     # Find the table in the page content
@@ -67,16 +68,41 @@ def get_data_table(url):
         return None
 
 
-def get_company_financials(ticker='dov'):
-    company_financials = {
-        'income': get_data_table(f"https://stockanalysis.com/stocks/{ticker}/financials/"),
-        'balance_sheet': get_data_table(f"https://stockanalysis.com/stocks/{ticker}/financials/balance-sheet/"),
-        'cash_flow': get_data_table(f"https://stockanalysis.com/stocks/{ticker}/financials/cash-flow-statement/"),
-        'ratios': get_data_table(f"https://stockanalysis.com/stocks/{ticker}/financials/ratios/"),
-
+# Define the function to fetch and process financial data for a specific company
+def get_company_financials_as_df(ticker):
+    # the functions gets a company ticker and returs a dictionary of financial tables (each as a dataframe)
+    financials_urls = {
+        'income': f"https://stockanalysis.com/stocks/{ticker}/financials/",
+        'balance_sheet': f"https://stockanalysis.com/stocks/{ticker}/financials/balance-sheet/",
+        'cash_flow': f"https://stockanalysis.com/stocks/{ticker}/financials/cash-flow-statement/",
+        'ratios': f"https://stockanalysis.com/stocks/{ticker}/financials/ratios/"
     }
-    return company_financials
 
-sp500_df = get_data_table(sp500_url)
+    return {key: get_data_table(url) for key, url in financials_urls.items()}
+
+
+def get_full_data_from_table_dfs(comp_df):
+    # retunrs data from table dataframes is a fully dictionary (then you can accesss anything using this dictionary)
+
+    full_data_dict = {}
+    for key in comp_df.keys():
+        table_categories_list = list(comp_df[key]['Year Ending'].values) # categories appearing in each table
+
+        full_data_dict[key] = {}
+        if key == 'ratios':
+            for category in table_categories_list:
+                full_data_dict[key][category] = comp_df[key][comp_df[key]['Year Ending'] == category]['Current'].values[0]
+        else:
+            for category in table_categories_list:
+                full_data_dict[key][category] = comp_df[key][comp_df[key]['Year Ending'] == category]['TTM'].values[0]
+
+    return full_data_dict
+
+# sp500_df = get_data_table(sp500_url)
+
+dov_financials_df = get_company_financials_as_df(ticker='dov')
+dov_financials_df['ratios'][dov_financials_df['ratios']['Year Ending'] == 'Debt / Equity Ratio']['Current'].values[0]
+
+full_data_dict = get_full_data_from_table_dfs(dov_financials_df)
 
 

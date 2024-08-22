@@ -83,9 +83,6 @@ def get_best_companies(ticker_list, df):
             })
             df_best_companies = pd.concat([df_best_companies, new_row], ignore_index=True)
 
-        if i==7:
-            break
-
     df_best_companies = df_best_companies.sort_values(by='GF_score', ascending=False)
     # df_best_companies.to_csv("/home/nim/best_companies.csv", index=False)
 
