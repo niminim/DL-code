@@ -2,12 +2,18 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
+
+###  The code gets a url that includes a table of companies a the table as a dataframe
+### I can also gets the full financial data from Stockanalysis
+
+
 # https://stockanalysis.com/list/
 sp500_url = 'https://stockanalysis.com/list/sp-500-stocks/'
 nasdaq100_rul = 'https://stockanalysis.com/list/nasdaq-100-stocks/'
 nasdaq_url = 'https://stockanalysis.com/list/nasdaq-stocks/'
 nyse_url = 'https://stockanalysis.com/list/nyse-stocks/'
 israeli_us_url= 'https://stockanalysis.com/list/israeli-stocks-us/'
+ipos_url = 'https://stockanalysis.com/ipos/'
 
 # Custom headers to mimic a browser
 headers = {
@@ -62,6 +68,7 @@ def get_data_table(url):
 
         # Convert the table data to a pandas DataFrame
         df = pd.DataFrame(table_data, columns=headers)
+        df.rename(columns={'Company Name': 'Company'}, inplace=True)
 
         return df
     else:
@@ -99,6 +106,9 @@ def get_full_data_from_table_dfs(comp_df):
     return full_data_dict
 
 # sp500_df = get_data_table(sp500_url)
+ipos_df = get_data_table(ipos_url)
+ticker_list = list(ipos_df['Symbol'].values)
+
 
 dov_financials_df = get_company_financials_as_df(ticker='dov')
 dov_financials_df['ratios'][dov_financials_df['ratios']['Year Ending'] == 'Debt / Equity Ratio']['Current'].values[0]

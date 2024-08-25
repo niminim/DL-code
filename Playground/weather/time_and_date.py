@@ -106,7 +106,7 @@ def extract_weather_data(url):
         wind_speed, wind_direction = extract_wind_info(soup)
 
         # Print all extracted weather data
-        print(f"Current weather in Tel Aviv:")
+        print(f"Current weather in {url.split('/')[-1]}")
         print(f"Temperature: {temperature}")
         print(f"Weather: {weather_desc}")
         print(f"Feels Like: {feels_like}")
@@ -118,6 +118,7 @@ def extract_weather_data(url):
 
 # URL of the weather page for Tel Aviv
 url = 'https://www.timeanddate.com/weather/israel/tel-aviv'
+url = 'https://www.timeanddate.com/weather/israel/petah-tikva'
 
 # Call the main function to extract and print weather data
 extract_weather_data(url)
