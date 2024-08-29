@@ -116,7 +116,7 @@ def extract_weather_data(url):
         print(f"Humidity: {humidity}")
 
 
-# URL of the weather page for Tel Aviv
+# URL of the weather page  for Tel Aviv
 url = 'https://www.timeanddate.com/weather/israel/tel-aviv'
 url = 'https://www.timeanddate.com/weather/israel/petah-tikva'
 
