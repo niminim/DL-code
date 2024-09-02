@@ -111,7 +111,7 @@ for epoch in range(params["epochs"]):
     starter_epoch, ender_epoch = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
     starter_epoch.record()
 
-    epoch_train_loss, sum_forward_timings= train_one_epoch(model, train_loader, criterion, optimizer, scaler, device, params['use_amp'])
+    epoch_train_loss, sum_forward_timings = train_one_epoch(model, train_loader, criterion, optimizer, scaler, device, params['use_amp'])
 
     # Record the end event for the epoch
     ender_epoch.record()
