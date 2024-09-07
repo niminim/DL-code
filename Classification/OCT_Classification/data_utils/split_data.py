@@ -6,9 +6,14 @@ import pandas as pd
 from PIL import Image
 import json, csv
 
+### The following code first takes a portion out of the whole data and copy the data to another directory
+### Then splits the "chosen" data to train and val
+### Then saves csvs to train and val
+
+
 # Paths
-source = "/home/nim/Downloads/OCT_and_X-ray/OCT2017/train"
-new_data_dir = "/home/nim/Downloads/OCT_and_X-ray/OCT2017/train_split"
+source = "/home/nim/Downloads/OCT2017/train"
+new_data_dir = "/home/nim/Downloads/OCT2017/train_split"
 csv_dir = "/Classification/OCT_Classification/data_utils/saved_files/csv_splits"
 
 # Constants
