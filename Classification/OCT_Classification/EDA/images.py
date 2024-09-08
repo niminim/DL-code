@@ -7,7 +7,9 @@ import cv2
 
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('Qt5Agg')  # or 'Qt5Agg' depending on your system
+# matplotlib.use('Qt5Agg')  # or 'Qt5Agg' depending on your system
+matplotlib.use('TkAgg')  # or 'TkAgg' for interactive mode without Qt
+
 
 sys.path.append('/home/nim/venv/DL-code/Classification/OCT_Classification/EDA')
 
@@ -28,7 +30,7 @@ def get_pil_img_metadata(img):
 
 
 ################################## Images
-img_path = '/home/nim/Downloads/OCT_and_X-ray/OCT2017/test/CNV/CNV-81630-3.jpeg'
+img_path = '/home/nim/Downloads/Data/OCT2017/test/CNV/CNV-81630-3.jpeg'
 ### PIL Image
 img = Image.open(img_path) # type(img) = PIL Image
 W, H, mode, format = get_pil_img_metadata(img)

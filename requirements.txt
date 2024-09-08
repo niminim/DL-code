@@ -36,6 +36,7 @@ python-ffmpeg==2.0.12
 # NLP
 gensim==4.3.3
 nltk==3.8.1
+scikit-llm==1.4.0
 
 # ML
 scikit-learn==1.4.0 

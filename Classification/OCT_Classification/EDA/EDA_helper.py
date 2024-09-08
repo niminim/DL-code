@@ -22,7 +22,7 @@ def get_train_test_class_dist(data_dir):
                 d[phase][label] += 1
     return d
 
-def print_dict_of_count_files_in_subdirectories(dict):
+def print_dict_of_count_files_in_subdirs(dict):
 
     print('********')
     print('Print the number of images in each folder:')
@@ -70,7 +70,7 @@ def plot_train_test_class_dist(d):
 
 
 # Calculate the image-size distribution
-def calculate_image_shape_distribution(data_dir):
+def calculate_image_shape_dist(data_dir):
     # Get the list of folders in the data directory (e.g., 'train' and 'test')
     phases = [phase for phase in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, phase))]
 

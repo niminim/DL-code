@@ -13,6 +13,7 @@ from torchvision import transforms
 from torchvision.transforms import v2
 
 
+### This code checks V2 transform speeds (and allow simple training) of OCT data (It doesn't seem V2 is faster than V1 transform)
 base_split_folder = '/home/nim/Downloads/Data/OCT2017'
 train_data_path = os.path.join(base_split_folder, 'train')
 test_data_path = os.path.join(base_split_folder, 'test')
