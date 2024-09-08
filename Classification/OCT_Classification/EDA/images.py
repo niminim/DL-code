@@ -7,8 +7,8 @@ import cv2
 
 import matplotlib.pyplot as plt
 import matplotlib
-# matplotlib.use('Qt5Agg')  # or 'Qt5Agg' depending on your system
-matplotlib.use('TkAgg')  # or 'TkAgg' for interactive mode without Qt
+matplotlib.use('Qt5Agg')  # or 'Qt5Agg' depending on your system
+# matplotlib.use('TkAgg')  # or 'TkAgg' for interactive mode without Qt
 
 
 sys.path.append('/home/nim/venv/DL-code/Classification/OCT_Classification/EDA')
@@ -36,7 +36,18 @@ img = Image.open(img_path) # type(img) = PIL Image
 W, H, mode, format = get_pil_img_metadata(img)
 print(f'size - H: {H}, W: {W}')
 img.show() # Show with PIL
-plt.imshow(img) # show with matplotlib (viewer)
+plt.imshow(img) # show with matplotlib (viewer) (note below)
+
+# PIL.Image and matplotlib.pyplot.imshow work with images in different formats
+# matplotlib needs the image in a format that it can handle — typically a NumPy array.
+# To fix this, you can convert the PIL.Image to a NumPy array before using plt.imshow()
+
+img_np = np.array(img)
+# Display the image using matplotlib
+plt.imshow(img_np)
+# plt.axis('off')  # Hide axis ticks and labels
+plt.show()
+
 
 
 ### opencv Image
@@ -49,7 +60,7 @@ plt.show()
 
 # Numpy data
 img_data = np.asarray(img)
-H, W, Ch = img_data.shape
+H, W = img_data.shape
 print(f'np_data image: size - H: {H}, W: {W}, Ch: {Ch}')
 print(f'dtype: {img_data.dtype}')
 plt.imshow(img_data)

@@ -24,11 +24,10 @@ def plot_aug_img(img, aug):
 
     # Convert the image to a format that plt.imshow can understand
     # The image needs to be permuted from (C, H, W) to (H, W, C) format
-    out_permuted = out.permute(1, 2, 0)
+    out_permuted = out.permute(1, 2, 0).numpy()  # Convert to NumPy for plotting
 
     # Display the cropped image using imshow
-    plt.imshow(out_permuted)
-    plt.axis('off')  # Hide axis
+    plt.imshow(out_permuted.astype('uint8'))  # Ensure correct dtype for imshow
     plt.show()
 
 transform_crop = v2.RandomCrop(size=(224, 224))
@@ -40,7 +39,6 @@ transforms = v2.Compose([
 ])
 
 plot_aug_img(img, aug=transform_crop)
-
 
 
 
