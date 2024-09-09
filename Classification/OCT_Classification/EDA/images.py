@@ -45,7 +45,6 @@ plt.imshow(img) # show with matplotlib (viewer) (note below)
 img_np = np.array(img)
 # Display the image using matplotlib
 plt.imshow(img_np)
-# plt.axis('off')  # Hide axis ticks and labels
 plt.show()
 
 
