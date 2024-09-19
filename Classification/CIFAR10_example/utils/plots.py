@@ -64,7 +64,7 @@ def plot_multiclass_roc(scores, labels, class2index,config, run):
 
     num_classes = config['num_classes']
     os.makedirs(config['plots_dir'],exist_ok=True)
-    roc_file_path = os.path.join(config['plots_dir'],'roc_curve.png')
+    roc_file_path = os.path.join(config['plots_dir'], config['model_name'] + '_roc_curve.png')
 
     # Create a new dictionary by swapping keys and values
     index2class = {value: key for key, value in class2index.items()}
@@ -113,8 +113,8 @@ def plot_multiclass_roc(scores, labels, class2index,config, run):
 def calc_and_plot_cm_cr(labels, preds, class2index, config, run):
 
     os.makedirs(config['plots_dir'],exist_ok=True)
-    cm_file_path = os.path.join(config['plots_dir'],'confusion_matrix.png')
-    cr_file_path = os.path.join(config['plots_dir'],'classification_report.png')
+    cm_file_path = os.path.join(config['plots_dir'], config['model_name'] + '_confusion_matrix.png')
+    cr_file_path = os.path.join(config['plots_dir'], config['model_name'] + '_classification_report.png')
 
 
     # Create a new dictionary by swapping keys and values

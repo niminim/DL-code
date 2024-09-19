@@ -18,10 +18,12 @@ def save_best_model(model, epoch, val_acc, best_val_acc, config):
     str: The path of the saved model.
     float: Updated best validation accuracy.
     """
-    # Create save directory if it doesn't exist
+
     models_dir = config['models_dir']
-    os.makedirs(models_dir,exist_ok=True)
     model_name = config['model_name']
+
+    # Create save directory if it doesn't exist
+    os.makedirs(models_dir,exist_ok=True)
 
     # Save the model if the current validation accuracy is the best seen so far
     if val_acc > best_val_acc:

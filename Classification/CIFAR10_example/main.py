@@ -80,4 +80,3 @@ if __name__ == '__main__':
 
     if config['save_to_neptune']:
         run.stop()
-
