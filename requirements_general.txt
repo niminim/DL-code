@@ -9,3 +9,5 @@ tqdm==4.66.5
 easydict==1.12
 PyQt5==5.15.10
 omegaconf==2.3.0
+selenium==4.25.0
+feedparser==6.0.11
