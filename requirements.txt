@@ -1,5 +1,5 @@
 # Torch
-torch==2.2.0
+torch==2.5.1
 torchvision==0.20.0
 torchaudio==2.5.0
 fastai==2.7.16
@@ -36,7 +36,7 @@ scikit-image==0.24.0
 python-ffmpeg==2.0.12
 
 # NLP
-open-clip-torch==2.26.1
+open-clip-torch==2.29.0
 scikit-llm==1.4.0
 nltk==3.9.1
 gensim==4.3.3 # word vector
