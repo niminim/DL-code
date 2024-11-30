@@ -14,11 +14,11 @@ skorch==1.0.0
 kornia==0.7.4
 evaluate==0.4.2
 grad-cam==1.5.3
-ultralytics==8.3.17
-lightly==1.5.13
+ultralytics==8.3.39
+lightly==1.5.15
 #segmentation-models-pytorch==0.3.3
-huggingface-hub==0.26.0
-transformers==4.46.2
+huggingface-hub==0.26.3
+transformers==4.46.3
 diffusers==0.31.0
 
 # Model Compression
@@ -47,7 +47,7 @@ coqui-tts==0.24.3
 soundfile==0.12.1
 speechbrain==1.0.1
 ffmpeg-python==0.2.0 # (also for vision)
-
+librosa==0.10.2.post1
 
 # ML
 scikit-learn==1.5.2
