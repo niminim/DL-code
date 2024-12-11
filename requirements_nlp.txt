@@ -1,0 +1,17 @@
+# NLP
+open-clip-torch==2.29.0
+scikit-llm==1.4.1
+nltk==3.9.1
+# gensim==4.3.3 # word vector
+# gensim 4.3.3 depends on numpy<2.0 and >=1.18.5
+
+
+# TTS
+TTS==0.22.0
+coqui-tts==0.24.0 # careful of 0.25.0!! It ruins the TTS, switches between different voices (also male and female)
+soundfile==0.12.1
+speechbrain==1.0.1
+ffmpeg-python==0.2.0 # (also for vision)
+librosa==0.10.2.post1
+pystoi==0.4.1
+pydub==0.25.1
