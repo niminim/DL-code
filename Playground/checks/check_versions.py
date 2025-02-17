@@ -8,6 +8,7 @@ import transformers
 import diffusers
 import kornia
 import skorch
+import vllm
 import lightning as lt
 import sklearn
 
@@ -25,7 +26,7 @@ print('Current Package Versions')
 print(f'torch:  {torch.__version__}, CUDA: {torch.cuda.is_available()}')
 print('torchvision: ', torchvision.__version__)
 print('torchaudio: ', torchaudio.__version__)
-print('vllm: ', vllm.__version__)
+print('VLLM: ', vllm.__version__)
 print('timm: ', timm.__version__)
 print('huggingface_hub: ', huggingface_hub.__version__)
 print('transformers: ', transformers.__version__)

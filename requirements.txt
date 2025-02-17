@@ -43,6 +43,9 @@ nltk==3.9.1
 # gensim==4.3.3 # word vector
 # gensim 4.3.3 depends on numpy<2.0 and >=1.18.5
 vllm==0.6.6.post1
+peft==0.14.0
+langchain==0.3.18
+
 
 # TTS_code
 TTS==0.22.0
@@ -51,6 +54,8 @@ gTTS==2.5.4
 soundfile==0.12.1
 librosa==0.10.2.post1
 sounddevice==0.5.1
+espeakng==1.0.3
+py-espeak-ng==0.1.8
 speechbrain==1.0.1
 ffmpeg-python==0.2.0 # (also for vision)
 pystoi==0.4.1
@@ -63,6 +68,7 @@ scikit-learn==1.5.2
 xgboost==2.1.1
 catboost==1.2.2
 lightgbm==4.5.0
+# Fireducks==1.2.2 ((pandas gpu alt, alsu cudf. haven't tried that)
 
 scipy==1.14.1
 numpy==2.1.2
