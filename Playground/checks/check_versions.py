@@ -8,7 +8,7 @@ import transformers
 import diffusers
 import kornia
 import skorch
-import vllm
+# import vllm
 import lightning as lt
 import sklearn
 
@@ -20,13 +20,13 @@ import pandas as pd
 import cv2
 #import tensorflow as tf
 
-import TTS_code
+import TTS
 
 print('Current Package Versions')
 print(f'torch:  {torch.__version__}, CUDA: {torch.cuda.is_available()}')
 print('torchvision: ', torchvision.__version__)
 print('torchaudio: ', torchaudio.__version__)
-print('VLLM: ', vllm.__version__)
+# print('VLLM: ', vllm.__version__)
 print('timm: ', timm.__version__)
 print('huggingface_hub: ', huggingface_hub.__version__)
 print('transformers: ', transformers.__version__)
@@ -42,6 +42,6 @@ print('pandas: ', pd.__version__)
 
 print('opencv: ', cv2.__version__)
 #print('tensorflow: ', tf.__version__)
-print('TTS_code: ', TTS_code.__version__)
+print('TTS_code: ', TTS.__version__)
 
 
