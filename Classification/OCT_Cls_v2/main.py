@@ -17,8 +17,7 @@ from sklearn.metrics import (
 )
 
 import matplotlib
-# Use the backend that works on your system
-matplotlib.use("Qt5Agg")
+matplotlib.use("Qt5Agg")  # Use Qt5Agg backend (works on your system)
 import matplotlib.pyplot as plt
 
 
@@ -29,13 +28,13 @@ DATA_ROOT = "/home/nim/Downloads/Data/OCT2017"
 TRAIN_DIR = os.path.join(DATA_ROOT, "train")
 TEST_DIR = os.path.join(DATA_ROOT, "test")
 
-RESULTS_DIR = "/Classification/OCT_Cls_v2/training_processs/results"
-GRAPHS_DIR = "/Classification/OCT_Cls_v2/training_processs/graphs"
+RESULTS_DIR = "/home/nim/venv/DL-Code/Classification/OCT_Cls_v2/training_processs/results"
+GRAPHS_DIR = "/home/nim/venv/DL-Code/Classification/OCT_Cls_v2/training_processs/graphs"
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
 os.makedirs(GRAPHS_DIR, exist_ok=True)
 
-NUM_TRAIN_SAMPLES = 4000
+NUM_TRAIN_SAMPLES = 1000
 NUM_VAL_SAMPLES = 500
 NUM_EPOCHS = 15
 BATCH_SIZE = 64
@@ -401,51 +400,72 @@ def plot_training_curves(history, output_path, show=False):
 
     if show:
         plt.show()
-
-    plt.close(fig)
+    else:
+        plt.close(fig)
 
 
 # -----------------------------
 # Confusion matrix & report images
 # -----------------------------
-def save_confusion_matrix(y_true, y_pred, class_names, output_path):
+def save_confusion_matrix(y_true, y_pred, class_names, output_path, show=False):
     cm = confusion_matrix(y_true, y_pred)
+
+    # --- Figure setup ---
     fig, ax = plt.subplots(figsize=(8, 6))
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
-    im = ax.imshow(cm, interpolation="nearest")
-    cbar = ax.figure.colorbar(im, ax=ax)
-    cbar.ax.tick_params(labelsize=10)
+    # --- Blue → White colormap (reversed so higher values = darker blue) ---
+    cmap = plt.cm.Blues
 
+    # --- Display matrix ---
+    im = ax.imshow(cm, interpolation="nearest", cmap=cmap)
+
+    # --- Add colorbar ---
+    cbar = ax.figure.colorbar(im, ax=ax)
+    cbar.ax.tick_params(labelsize=12)
+
+    # --- Axis ticks & labels ---
     ax.set(
         xticks=np.arange(len(class_names)),
         yticks=np.arange(len(class_names)),
         xticklabels=class_names,
         yticklabels=class_names,
-        ylabel="True label",
-        xlabel="Predicted label",
-        title="Confusion Matrix"
+        ylabel="True Label",
+        xlabel="Predicted Label",
+        title="Confusion Matrix",
     )
 
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", fontsize=12)
+    plt.setp(ax.get_yticklabels(), fontsize=12)
 
+    # --- Annotate each cell with readable text ---
     thresh = cm.max() / 2.0
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
+            value = cm[i, j]
             ax.text(
-                j, i, format(cm[i, j], "d"),
+                j, i, f"{value}",
                 ha="center", va="center",
-                fontsize=10,
-                color="white" if cm[i, j] > thresh else "black"
+                fontsize=13, fontweight="bold",
+                color="white" if value > thresh else "black"
             )
+
+    # --- Grid lines for better visual separation ---
+    ax.set_xticks(np.arange(-0.5, len(class_names), 1), minor=True)
+    ax.set_yticks(np.arange(-0.5, len(class_names), 1), minor=True)
+    ax.grid(which="minor", color="black", linestyle="-", linewidth=0.5)
+    ax.tick_params(which="minor", bottom=False, left=False)
 
     fig.tight_layout()
     fig.savefig(output_path, dpi=300)
-    plt.close(fig)
 
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
 
-def save_classification_report_image(y_true, y_pred, class_names, output_path):
+def save_classification_report_image(y_true, y_pred, class_names, output_path, show=False):
     report_str = classification_report(
         y_true, y_pred, target_names=class_names, digits=4
     )
@@ -463,7 +483,11 @@ def save_classification_report_image(y_true, y_pred, class_names, output_path):
     )
     fig.tight_layout()
     fig.savefig(output_path, dpi=300)
-    plt.close(fig)
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
 
 
 # -----------------------------
@@ -477,12 +501,12 @@ def main():
         device=device
     )
 
-    # Training curves: save + show on screen
+    # 1) Training curves: save + show
     curves_path = os.path.join(GRAPHS_DIR, "training_loss_accuracy.png")
     plot_training_curves(history, curves_path, show=True)
     print(f"Saved training curves to: {curves_path}")
 
-    # Best model on test set
+    # 2) Best model on test set
     test_loss, test_acc, test_prec, test_rec, test_f1, y_true, y_pred = evaluate(
         best_model, dataloaders["test"], criterion, device
     )
@@ -496,13 +520,14 @@ def main():
         y_true, y_pred, target_names=test_dataset.classes, digits=4
     ))
 
+    # 3) Confusion matrix: save + show
     cm_path = os.path.join(GRAPHS_DIR, "confusion_matrix_best_model.png")
-    cr_path = os.path.join(GRAPHS_DIR, "classification_report_best_model.png")
-
-    save_confusion_matrix(y_true, y_pred, test_dataset.classes, cm_path)
-    save_classification_report_image(y_true, y_pred, test_dataset.classes, cr_path)
-
+    save_confusion_matrix(y_true, y_pred, test_dataset.classes, cm_path, show=True)
     print(f"\nSaved confusion matrix image to: {cm_path}")
+
+    # 4) Classification report image: save + show
+    cr_path = os.path.join(GRAPHS_DIR, "classification_report_best_model.png")
+    save_classification_report_image(y_true, y_pred, test_dataset.classes, cr_path, show=True)
     print(f"Saved classification report image to: {cr_path}")
 
     # Save best model with epoch + best val in filename
