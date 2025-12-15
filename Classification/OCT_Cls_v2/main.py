@@ -28,15 +28,15 @@ DATA_ROOT = "/home/nim/Downloads/Data/OCT2017"
 TRAIN_DIR = os.path.join(DATA_ROOT, "train")
 TEST_DIR = os.path.join(DATA_ROOT, "test")
 
-RESULTS_DIR = "/home/nim/venv/DL-Code/Classification/OCT_Cls_v2/training_processs/results"
-GRAPHS_DIR = "/home/nim/venv/DL-Code/Classification/OCT_Cls_v2/training_processs/graphs"
+RESULTS_DIR = "/home/nim/venv/DL-code/Classification/OCT_Cls_v2/training_processs/results"
+GRAPHS_DIR = "/home/nim/venv/DL-code/Classification/OCT_Cls_v2/training_processs/graphs"
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
 os.makedirs(GRAPHS_DIR, exist_ok=True)
 
-NUM_TRAIN_SAMPLES = 1000
+NUM_TRAIN_SAMPLES = 200
 NUM_VAL_SAMPLES = 500
-NUM_EPOCHS = 15
+NUM_EPOCHS = 20
 BATCH_SIZE = 64
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
@@ -415,17 +415,17 @@ def save_confusion_matrix(y_true, y_pred, class_names, output_path, show=False):
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
-    # --- Blue → White colormap (reversed so higher values = darker blue) ---
+    # --- Blue → White colormap ---
     cmap = plt.cm.Blues
 
-    # --- Display matrix ---
+    # --- Show matrix ---
     im = ax.imshow(cm, interpolation="nearest", cmap=cmap)
 
-    # --- Add colorbar ---
+    # --- Colorbar ---
     cbar = ax.figure.colorbar(im, ax=ax)
     cbar.ax.tick_params(labelsize=12)
 
-    # --- Axis ticks & labels ---
+    # --- Axis labels & ticks ---
     ax.set(
         xticks=np.arange(len(class_names)),
         yticks=np.arange(len(class_names)),
@@ -433,13 +433,13 @@ def save_confusion_matrix(y_true, y_pred, class_names, output_path, show=False):
         yticklabels=class_names,
         ylabel="True Label",
         xlabel="Predicted Label",
-        title="Confusion Matrix",
+        title="Confusion Matrix"
     )
 
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", fontsize=12)
     plt.setp(ax.get_yticklabels(), fontsize=12)
 
-    # --- Annotate each cell with readable text ---
+    # --- Annotate cells with readable text ---
     thresh = cm.max() / 2.0
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
@@ -451,19 +451,22 @@ def save_confusion_matrix(y_true, y_pred, class_names, output_path, show=False):
                 color="white" if value > thresh else "black"
             )
 
-    # --- Grid lines for better visual separation ---
+    # --- Grid lines for clarity ---
     ax.set_xticks(np.arange(-0.5, len(class_names), 1), minor=True)
     ax.set_yticks(np.arange(-0.5, len(class_names), 1), minor=True)
     ax.grid(which="minor", color="black", linestyle="-", linewidth=0.5)
     ax.tick_params(which="minor", bottom=False, left=False)
 
+    # --- SAVE FIGURE ---
     fig.tight_layout()
     fig.savefig(output_path, dpi=300)
 
+    # --- SHOW FIGURE IF ASKED ---
     if show:
         plt.show()
     else:
         plt.close(fig)
+
 
 def save_classification_report_image(y_true, y_pred, class_names, output_path, show=False):
     report_str = classification_report(
