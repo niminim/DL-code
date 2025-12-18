@@ -20,8 +20,8 @@ DATA_ROOT = Path("/home/nim/Downloads/Data/OCT2017")
 UNSUP_DIR = DATA_ROOT / "data_for_unsupervised"
 TRAIN_UNLABELED = UNSUP_DIR / "train_unlabeled"
 
-OUT_DIR = Path("/home/nim/venv/DL-code/SSL_OCT_MoCoV2")
-CKPT_DIR = OUT_DIR / "checkpoints"
+OUT_DIR = Path("/home/nim/venv/DL-code/Classification/OCT_Cls_v2")
+CKPT_DIR = OUT_DIR / "mocov2_checkpoints"
 CKPT_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -34,7 +34,7 @@ IMG_SIZE = 224
 BATCH_SIZE = 512
 NUM_WORKERS = 16
 PREFETCH_FACTOR = 1
-EPOCHS = 100
+EPOCHS = 150
 
 LR = 0.03
 WEIGHT_DECAY = 1e-4
@@ -274,9 +274,13 @@ def main():
         print(f"Epoch {epoch:03d}/{EPOCHS} | lr={lr:.5f} | loss={avg_loss:.4f} | {dt:.1f}s")
 
         if epoch % 10 == 0 or epoch == EPOCHS:
-            ckpt_path = CKPT_DIR / f"moco_v2_{BACKBONE}_epoch_{epoch:03d}.pt"
-            save_ckpt(ckpt_path, epoch, model, optimizer)
+            ckpt_path = CKPT_DIR / f"moco_v2_epoch_{epoch:03d}_loss_{avg_loss:.4f}.pt"
+            save_ckpt(epoch, ckpt_path)
             print("Saved:", ckpt_path)
+
+            if epoch % 10 == 0:
+                print("Epoch divisible by 10 — sleeping for 5 seconds...")
+                time.sleep(5)
 
     print("Done.")
 

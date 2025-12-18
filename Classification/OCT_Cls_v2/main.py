@@ -30,9 +30,17 @@ TEST_DIR = os.path.join(DATA_ROOT, "test")
 
 RESULTS_DIR = "/home/nim/venv/DL-code/Classification/OCT_Cls_v2/training_processs/results"
 GRAPHS_DIR = "/home/nim/venv/DL-code/Classification/OCT_Cls_v2/training_processs/graphs"
+MODELS_DIR = "/home/nim/venv/DL-code/Classification/OCT_Cls_v2/training_processs/models"
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
 os.makedirs(GRAPHS_DIR, exist_ok=True)
+os.makedirs(MODELS_DIR, exist_ok=True)
+
+# -----------------------------
+# NEW: Model options
+# -----------------------------
+MODEL_NAME = "resnet18"   # "mobilenetv3" or "resnet18"
+PRETRAINED = True            # True = ImageNet, False = none (random init)
 
 NUM_TRAIN_SAMPLES = 200
 NUM_VAL_SAMPLES = 500
@@ -40,7 +48,7 @@ NUM_EPOCHS = 20
 BATCH_SIZE = 64
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
-PATIENCE = 5  # early stopping patience (epochs without val acc improvement)
+PATIENCE = 8  # early stopping patience (epochs without val acc improvement)
 SEED = 42
 NUM_CLASSES = 4
 CLASS_NAMES = ["CNV", "DME", "DRUSEN", "NORMAL"]
@@ -142,26 +150,57 @@ dataloaders = {
 
 
 # -----------------------------
-# Model: MobileNetV3
+# Model: MobileNetV3 / ResNet18
 # -----------------------------
-def create_mobilenetv3(num_classes: int):
-    try:
-        weights = models.MobileNet_V3_Large_Weights.IMAGENET1K_V2
-        model = models.mobilenet_v3_large(weights=weights)
-    except AttributeError:
-        model = models.mobilenet_v3_large(pretrained=True)
+def create_mobilenetv3(num_classes: int, pretrained: bool):
+    if pretrained:
+        try:
+            weights = models.MobileNet_V3_Large_Weights.IMAGENET1K_V2
+            model = models.mobilenet_v3_large(weights=weights)
+        except AttributeError:
+            model = models.mobilenet_v3_large(pretrained=True)
+    else:
+        model = models.mobilenet_v3_large(weights=None)
 
     in_features = model.classifier[-1].in_features
     model.classifier[-1] = nn.Linear(in_features, num_classes)
     return model
 
 
-model = create_mobilenetv3(NUM_CLASSES).to(device)
+def create_resnet18(num_classes: int, pretrained: bool):
+    if pretrained:
+        try:
+            weights = models.ResNet18_Weights.IMAGENET1K_V1
+            model = models.resnet18(weights=weights)
+        except AttributeError:
+            model = models.resnet18(pretrained=True)
+    else:
+        model = models.resnet18(weights=None)
+
+    in_features = model.fc.in_features
+    model.fc = nn.Linear(in_features, num_classes)
+    return model
+
+
+MODEL_NAME_CANON = MODEL_NAME.lower().strip()
+if MODEL_NAME_CANON == "mobilenetv3":
+    model = create_mobilenetv3(NUM_CLASSES, PRETRAINED).to(device)
+elif MODEL_NAME_CANON == "resnet18":
+    model = create_resnet18(NUM_CLASSES, PRETRAINED).to(device)
+else:
+    raise ValueError("MODEL_NAME must be 'mobilenetv3' or 'resnet18'")
 
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE,
                              weight_decay=WEIGHT_DECAY)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
+
+
+# -----------------------------
+# NEW: LR helper
+# -----------------------------
+def get_current_lr(optimizer):
+    return optimizer.param_groups[0]["lr"]
 
 
 # -----------------------------
@@ -227,6 +266,9 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler,
     best_epoch = 0
     epochs_since_improvement = 0
 
+    # track single best model file so we can delete the previous one
+    best_model_path = None
+
     history = {
         "train": {"loss": [], "acc": [], "precision": [], "recall": [], "f1": []},
         "val": {"loss": [], "acc": [], "precision": [], "recall": [], "f1": []},
@@ -241,6 +283,8 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler,
     for epoch in range(num_epochs):
         print("-" * 60)
         print(f"Epoch {epoch + 1}/{num_epochs}")
+        # NEW: print LR for this epoch (before training step)
+        print(f"  LR      - {get_current_lr(optimizer):.6f}")
 
         # -----------------
         # Train phase
@@ -331,11 +375,19 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler,
             epochs_since_improvement = 0
             best_model_wts = copy.deepcopy(model.state_dict())
 
-            # Rolling "best so far" file
-            torch.save(
-                best_model_wts,
-                os.path.join(RESULTS_DIR, "best_model_state_dict.pth")
+            # save ONLY best model in MODELS_DIR with requested filename;
+            # delete previous best file
+            best_val_str = fmt(best_val_acc)
+            new_best_path = os.path.join(
+                MODELS_DIR,
+                f"{MODEL_NAME_CANON}_epoch_{epoch + 1}_val_acc_{best_val_str}.pth"
             )
+
+            if best_model_path is not None and os.path.exists(best_model_path) and best_model_path != new_best_path:
+                os.remove(best_model_path)
+
+            torch.save(best_model_wts, new_best_path)
+            best_model_path = new_best_path
         else:
             epochs_since_improvement += 1
 
@@ -351,7 +403,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler,
     print(f"Best val Acc: {fmt(best_val_acc)} (epoch {best_epoch})")
 
     model.load_state_dict(best_model_wts)
-    return model, history, best_epoch, best_val_acc
+    return model, history, best_epoch, best_val_acc, best_model_path
 
 
 # -----------------------------
@@ -410,22 +462,16 @@ def plot_training_curves(history, output_path, show=False):
 def save_confusion_matrix(y_true, y_pred, class_names, output_path, show=False):
     cm = confusion_matrix(y_true, y_pred)
 
-    # --- Figure setup ---
     fig, ax = plt.subplots(figsize=(8, 6))
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
-    # --- Blue → White colormap ---
     cmap = plt.cm.Blues
-
-    # --- Show matrix ---
     im = ax.imshow(cm, interpolation="nearest", cmap=cmap)
 
-    # --- Colorbar ---
     cbar = ax.figure.colorbar(im, ax=ax)
     cbar.ax.tick_params(labelsize=12)
 
-    # --- Axis labels & ticks ---
     ax.set(
         xticks=np.arange(len(class_names)),
         yticks=np.arange(len(class_names)),
@@ -439,7 +485,6 @@ def save_confusion_matrix(y_true, y_pred, class_names, output_path, show=False):
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", fontsize=12)
     plt.setp(ax.get_yticklabels(), fontsize=12)
 
-    # --- Annotate cells with readable text ---
     thresh = cm.max() / 2.0
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
@@ -451,17 +496,14 @@ def save_confusion_matrix(y_true, y_pred, class_names, output_path, show=False):
                 color="white" if value > thresh else "black"
             )
 
-    # --- Grid lines for clarity ---
     ax.set_xticks(np.arange(-0.5, len(class_names), 1), minor=True)
     ax.set_yticks(np.arange(-0.5, len(class_names), 1), minor=True)
     ax.grid(which="minor", color="black", linestyle="-", linewidth=0.5)
     ax.tick_params(which="minor", bottom=False, left=False)
 
-    # --- SAVE FIGURE ---
     fig.tight_layout()
     fig.savefig(output_path, dpi=300)
 
-    # --- SHOW FIGURE IF ASKED ---
     if show:
         plt.show()
     else:
@@ -497,7 +539,7 @@ def save_classification_report_image(y_true, y_pred, class_names, output_path, s
 # Main
 # -----------------------------
 def main():
-    best_model, history, best_epoch, best_val_acc = train_model(
+    best_model, history, best_epoch, best_val_acc, best_model_path = train_model(
         model, dataloaders, criterion, optimizer, scheduler,
         num_epochs=NUM_EPOCHS,
         patience=PATIENCE,
@@ -509,7 +551,7 @@ def main():
     plot_training_curves(history, curves_path, show=True)
     print(f"Saved training curves to: {curves_path}")
 
-    # 2) Best model on test set
+    # 2) Best model on test set (final evaluation uses best_model)
     test_loss, test_acc, test_prec, test_rec, test_f1, y_true, y_pred = evaluate(
         best_model, dataloaders["test"], criterion, device
     )
@@ -533,13 +575,9 @@ def main():
     save_classification_report_image(y_true, y_pred, test_dataset.classes, cr_path, show=True)
     print(f"Saved classification report image to: {cr_path}")
 
-    # Save best model with epoch + best val in filename
-    best_val_str = fmt(best_val_acc)
-    final_model_filename = f"epoch_{best_epoch}_best_val_{best_val_str}.pth"
-    final_model_path = os.path.join(RESULTS_DIR, final_model_filename)
-
-    torch.save(best_model.state_dict(), final_model_path)
-    print(f"Saved best model weights to: {final_model_path}")
+    # show where the single best model is saved (no extra snapshots)
+    if best_model_path is not None:
+        print(f"\nSaved best model weights to: {best_model_path}")
 
 
 if __name__ == "__main__":
